@@ -69,7 +69,7 @@ return 0;
 
 UINT m_windowWidth = 800;
 UINT m_windowHeight = 600;
-float m_targetFPS = 30.0f;
+float m_targetFPS = 60.0f;
 float m_frameTime = 1.0f / m_targetFPS;
 
 UINT m_gridDensity = 25;			// 25 is default
@@ -115,7 +115,30 @@ struct Clock
 	}
 };
 
+unsigned int Convert2D1D(unsigned int _x, unsigned int _y, unsigned int _width)
+{
+	return _x + (_y * _width);
+}
 
+void Convert1D2D(unsigned int _fromValue, unsigned int& _xResult, unsigned int& _yResult)
+{
+	// This is intended to create indexes for a 4x4 matrix
+	unsigned int x = 0;
+	unsigned int y = 0;
+	if (_fromValue <= 3)
+		y = 0;
+	else if (_fromValue <= 7)
+		y = 1;
+	else if (_fromValue <= 11)
+		y = 2;
+	else if (_fromValue <= 15)
+		y = 3;
+
+	x = _fromValue % 4;
+	_xResult = x;
+	_yResult = y;
+
+}
 
 //////////////////////// Geometry ////////////////////////
 

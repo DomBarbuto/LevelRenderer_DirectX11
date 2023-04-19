@@ -30,7 +30,7 @@ public:
 	// This could be populated by the Level_Renderer during GPU transfer
 	std::vector<MATERIAL_TEXTURES> levelTextures; // same size as LevelMaterials
 	// All transform data used by each model
-	std::vector<GW::MATH::GMATRIXF> levelTransforms;
+	std::vector<XMFLOAT4X4> levelTransforms;
 	// All required drawing information combined
 	std::vector<H2B::BATCH> levelBatches;
 	std::vector<H2B::MESH> levelMeshes;
@@ -88,7 +88,7 @@ private:
 	struct MODEL_ENTRY
 	{
 		std::string modelFile; // path to .h2b file
-		mutable std::vector<GW::MATH::GMATRIXF> instances; // where to draw
+		mutable std::vector<XMFLOAT4X4> instances; // where to draw
 		bool operator<(const MODEL_ENTRY& cmp) const {
 			return modelFile < cmp.modelFile; // you need this for std::set to work
 		}
@@ -120,19 +120,35 @@ private:
 				add.modelFile = add.modelFile.substr(0, add.modelFile.find_last_of("."));
 				add.modelFile += ".h2b";
 
-				// now read the transform data as we will need that regardless
-				GW::MATH::GMATRIXF transform;
+				// Swapped out from GMATRIXF fucntionality to DirectX::XMFLOAT4X4 functionality.
+				// The GMATRIXF has a 1D array storing the 16 elements. XMFLOAT4X4 has a 2D array
+				// storing its 16 elements. Must convert using the input parameters that were here before.
+				// NOTE: Convert1D2D is only intended for 4x4 matrices.
+				XMFLOAT4X4 transform;
 				for (int i = 0; i < 4; ++i) {
 					file.ReadLine(linebuffer, 1024, '\n');
+
+					// Because we switched from Gateware matrix type to directx matrix type, calling convert 
+					// from 2d array to 1d array 4 times per loop
+					unsigned int x1, x2, x3, x4;
+					unsigned int y1, y2, y3, y4;
+					// The first parameters here are pulled from original code (indexing into GMATRIXF.data)
+					Convert1D2D(0 + i * 4, x1, y1);	//1 
+					Convert1D2D(1 + i * 4, x2, y2);	//2
+					Convert1D2D(2 + i * 4, x3, y3);	//3
+					Convert1D2D(3 + i * 4, x4, y4);	//4
+
 					// read floats
 					std::sscanf(linebuffer + 13, "%f, %f, %f, %f",
-						&transform.data[0 + i * 4], &transform.data[1 + i * 4],
-						&transform.data[2 + i * 4], &transform.data[3 + i * 4]);
+						&transform.m[x1][y1], &transform.m[x2][y2],
+						&transform.m[x3][y3], &transform.m[x4][y4]);
+					
 				}
 				std::string loc = "Location: X ";
-				loc += std::to_string(transform.row4.x) + " Y " +
-					std::to_string(transform.row4.y) + " Z " + std::to_string(transform.row4.z);
+				loc += std::to_string(transform._41) + " Y " +
+					std::to_string(transform._42) + " Z " + std::to_string(transform._43);
 				log.LogCategorized("INFO", loc.c_str());
+
 
 				// does this model already exist?
 				auto found = outModels.find(add);

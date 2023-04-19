@@ -18,14 +18,21 @@ int main()
 
 	if (+win.Create(0, 0, m_windowWidth, m_windowHeight, GWindowStyle::WINDOWEDBORDERED))
 	{
+		// Set Program name
 		win.SetWindowName("Dominic Barbuto - Programming Assignment 2");
+
+		// Set back buffer color
 		float clr[] = { 33/255.0f, 43/255.0f, 78/255.0f, 1 }; // start with a neon green
+
+		// Create event responder
 		msgs.Create([&](const GW::GEvent& e) {
 			GW::SYSTEM::GWindow::Events q;
 			if (+e.Read(q) && q == GWindow::Events::RESIZE)
 				clr[2] += 0.01f; // move towards a cyan as they resize
 		});
 		win.Register(msgs);
+
+
 		if (+d3d11.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
 		{
 			Renderer renderer(win, d3d11);
