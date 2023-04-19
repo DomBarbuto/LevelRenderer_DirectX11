@@ -2,6 +2,9 @@
 #include <DirectXMath.h>
 #include <vector>		//resizable array
 #include "FSLogo.h"
+
+// This reads .h2b files which are optimized binary .obj+.mtl files
+#include "h2bParser.h"
 using namespace DirectX;
 
 // Simple basecode showing how to create a window and attatch a d3d11surface
@@ -111,6 +114,8 @@ struct Clock
 		start = now = clock.now();
 	}
 };
+
+
 
 //////////////////////// Geometry ////////////////////////
 

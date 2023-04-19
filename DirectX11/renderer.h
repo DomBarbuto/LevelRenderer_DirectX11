@@ -1,4 +1,4 @@
-#include "MyDefines.h"
+#include "load_data_oriented.h"
 #include <d3dcompiler.h>
 #pragma comment(lib, "d3dcompiler.lib") //needed for runtime shader compilation. Consider compiling shaders before runtime 
 

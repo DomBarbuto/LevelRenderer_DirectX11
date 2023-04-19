@@ -5,12 +5,17 @@
 // lets pop a window and use D3D11 to clear to a green screen
 int main()
 {
-	// Initialize the clock
-	Clock timer;
-
 	GWindow win;
 	GEventResponder msgs;
 	GDirectX11Surface d3d11;
+
+	// Initialize the clock
+	Clock timer;
+
+	// Create a GameManager for level loading/switching
+	GameManager gameManager;
+	gameManager.LoadLevel(0);
+
 	if (+win.Create(0, 0, m_windowWidth, m_windowHeight, GWindowStyle::WINDOWEDBORDERED))
 	{
 		win.SetWindowName("Dominic Barbuto - Programming Assignment 2");

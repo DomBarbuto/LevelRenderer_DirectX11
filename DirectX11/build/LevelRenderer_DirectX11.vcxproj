@@ -328,8 +328,13 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="..\Camera.h" />
     <ClInclude Include="..\FileIntoString.h" />
     <ClInclude Include="..\FSLogo.h" />
+    <ClInclude Include="..\h2bParser.h" />
+    <ClInclude Include="..\load_data_oriented.h" />
     <ClInclude Include="..\MyDefines.h" />
     <ClInclude Include="..\renderer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\GameLevel.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
