@@ -91,7 +91,11 @@ struct CB_PerObject
 	XMFLOAT4X4 wMatrix;					// 64 bytes
 	XMFLOAT4X4 vMatrix;					// 64 bytes
 	XMFLOAT4X4 pMatrix;					// 64 bytes
-	_OBJ_ATTRIBUTES_ currOBJAttributes;	// ?
+
+	//Assignemnt 2
+	//_OBJ_ATTRIBUTES_ currOBJAttributes;	// ?
+	
+	H2B::ATTRIBUTES currOBJAttributes;
 };
 
 struct CB_PerFrame

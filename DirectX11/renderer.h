@@ -32,6 +32,9 @@ class Renderer
 	CB_PerObject CB_currentPerObject;
 	CB_PerFrame CB_currentPerFrame;
 
+	// Create a GameManager for level loading/switching
+	GameManager gameManager;
+
 public:
 	Renderer(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GDirectX11Surface _d3d)
 	{
@@ -40,12 +43,15 @@ public:
 
 		// Keyboard and mouse input handle
 		UNIVERSAL_WINDOW_HANDLE winHandle;
-		GReturn handReturn = win.GetWindowHandle(winHandle);
-		GReturn res = kbmInput.Create(winHandle);
+		win.GetWindowHandle(winHandle);
+		kbmInput.Create(winHandle);
 
 		// Gamepad controller input handle
-		res = controllerInput.Create();
+		controllerInput.Create();
 		
+		// Load the first level
+		gameManager.LoadLevel(0);
+
 		InitializeGraphics();
 	}
 private:
@@ -66,7 +72,7 @@ private:
 
 	void InitializeVertexBuffer(ID3D11Device* creator)
 	{
-		CreateVertexBuffer(creator, &FSLogo_vertices[0], sizeof(_OBJ_VERT_) * FSLogo_vertexcount);
+		CreateVertexBuffer(creator, gameManager.currentLevelData.levelVertices.data(), sizeof(H2B::VERTEX) * gameManager.currentLevelData.levelVertices.size());
 	}
 
 	void CreateVertexBuffer(ID3D11Device* creator, const void* data, unsigned int sizeInBytes)
@@ -78,7 +84,7 @@ private:
 
 	void InitializeIndexBuffer(ID3D11Device* creator)
 	{
-		CreateIndexBuffer(creator, &FSLogo_indices[0], sizeof(UINT) * FSLogo_indexcount);
+		CreateIndexBuffer(creator, gameManager.currentLevelData.levelIndices.data(), sizeof(UINT) * gameManager.currentLevelData.levelIndices.size());
 	}
 
 	void CreateIndexBuffer(ID3D11Device* creator, const void* data, unsigned int sizeInBytes)
@@ -95,7 +101,7 @@ private:
 		CB_currentPerObject.vMatrix = viewCamera.GetViewMatrix();
 		CB_currentPerObject.pMatrix = viewCamera.GetPerspectiveMatrix();
 		// TODO: SETUP ORIGINAL OBJ ATTRIBUTES
-		CB_currentPerObject.currOBJAttributes = FSLogo_materials[0].attrib;
+		//CB_currentPerObject.currOBJAttributes = gameManager.currentLevelData.levelMaterials[i].attrib;
 
 		// Setup original perFrame constant buffer structure
 		XMStoreFloat4(&CB_currentPerFrame.lightColor, XMLoadFloat4(&m_origSunlightColor));
@@ -219,21 +225,49 @@ public:
 
 		static float temp = 0.0001f;
 
-		for (size_t i = 0; i < FSLogo_meshcount; i++)
-		{
-			// Drawing text - stationary
-			if (i == 0)
-				XMStoreFloat4x4(&CB_currentPerObject.wMatrix, XMMatrixIdentity());
-			// Drawing logo, rotating
-			else
-				XMStoreFloat4x4(&CB_currentPerObject.wMatrix, XMMatrixRotationY( temp ));
+		// Assignment2
+		//for (size_t i = 0; i < FSLogo_meshcount; i++)
+		//{
+		//	// Drawing text - stationary
+		//	if (i == 0)
+		//		XMStoreFloat4x4(&CB_currentPerObject.wMatrix, XMMatrixIdentity());
+		//	// Drawing logo, rotating
+		//	else
+		//		XMStoreFloat4x4(&CB_currentPerObject.wMatrix, XMMatrixRotationY( temp ));
 
-			// Swap out constant buffer obj attributes for respective oject
-			CB_currentPerObject.currOBJAttributes = FSLogo_materials[FSLogo_meshes[i].materialIndex].attrib;
+		//	// Swap out constant buffer obj attributes for respective oject
+		//	CB_currentPerObject.currOBJAttributes = FSLogo_materials[FSLogo_meshes[i].materialIndex].attrib;
+		//	CB_GPU_Upload(curHandles);
+		//	curHandles.context->DrawIndexed(FSLogo_meshes[i].indexCount,
+		//		FSLogo_meshes[i].indexOffset, 0);
+		//}
+
+		for (size_t i = 0; i < gameManager.currentLevelData.levelModels.size(); i++)
+		{
+			//TODO : FIX
+			// Swap out matrices 
+			//CB_currentPerObject.wMatrix = gameManager.currentLevelData.levelTransforms[gameManager.currentLevelData.level];
+			XMStoreFloat4x4(&CB_currentPerObject.wMatrix, XMMatrixTranslation(i * 2, 0, 0));
+
+			// Load material attributes
+			CB_currentPerObject.currOBJAttributes = gameManager.currentLevelData.levelMaterials[i].attrib;
+			CB_currentPerObject.currOBJAttributes = gameManager.currentLevelData.levelMaterials[gameManager.currentLevelData.levelMeshes[i].materialIndex].attrib ;
 			CB_GPU_Upload(curHandles);
-			curHandles.context->DrawIndexed(FSLogo_meshes[i].indexCount,
-				FSLogo_meshes[i].indexOffset, 0);
+
+
+			for (size_t j = 0; j < gameManager.currentLevelData.levelModels[i].meshCount; j++)
+			{
+				unsigned int actualMeshIndex = j + gameManager.currentLevelData.levelModels[i].meshStart;
+				const H2B::MESH* mesh = &gameManager.currentLevelData.levelMeshes[actualMeshIndex];
+
+
+				curHandles.context->DrawIndexed(mesh->drawInfo.indexCount,
+					mesh->drawInfo.indexOffset + gameManager.currentLevelData.levelModels[i].indexStart,
+					gameManager.currentLevelData.levelModels[i].vertexStart);
+			}
 		}
+
+
 
 		temp += 0.005f;
 

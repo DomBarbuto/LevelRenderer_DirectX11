@@ -39,7 +39,7 @@ cbuffer CB_PerFrame : register(b1)
     float padding;
 };
 
-static float4 ambientTerm = float4(0.25f, 0.25f, 0.25f, 1.0f);
+static float4 ambientTerm = float4(0.75f, 0.75f, 0.75f, 1.0f);
 
 float4 main(VERTEX_In vIn) : SV_TARGET
 {

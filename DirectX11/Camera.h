@@ -64,7 +64,7 @@ private:
 	float m_farZ = 2000;
 
 	// Camera controls
-	float m_camMoveSpeed = 0.005f;
+	float m_camMoveSpeed = 0.1f;
 	float m_mouseXSensitivity = 1.0f;
 	float m_mouseYSensitivity = 1.0f;
 	float m_rightStickXSensitivity = 8.0f;

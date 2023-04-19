@@ -12,10 +12,6 @@ int main()
 	// Initialize the clock
 	Clock timer;
 
-	// Create a GameManager for level loading/switching
-	GameManager gameManager;
-	gameManager.LoadLevel(0);
-
 	if (+win.Create(0, 0, m_windowWidth, m_windowHeight, GWindowStyle::WINDOWEDBORDERED))
 	{
 		// Set Program name
