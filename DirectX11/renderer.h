@@ -252,14 +252,13 @@ public:
 			// Load material attributes
 			CB_currentPerObject.currOBJAttributes = gameManager.currentLevelData.levelMaterials[i].attrib;
 			CB_currentPerObject.currOBJAttributes = gameManager.currentLevelData.levelMaterials[gameManager.currentLevelData.levelMeshes[i].materialIndex].attrib ;
-			CB_GPU_Upload(curHandles);
 
+			CB_GPU_Upload(curHandles);
 
 			for (size_t j = 0; j < gameManager.currentLevelData.levelModels[i].meshCount; j++)
 			{
 				unsigned int actualMeshIndex = j + gameManager.currentLevelData.levelModels[i].meshStart;
 				const H2B::MESH* mesh = &gameManager.currentLevelData.levelMeshes[actualMeshIndex];
-
 
 				curHandles.context->DrawIndexed(mesh->drawInfo.indexCount,
 					mesh->drawInfo.indexOffset + gameManager.currentLevelData.levelModels[i].indexStart,
