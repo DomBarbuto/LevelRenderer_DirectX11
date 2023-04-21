@@ -86,16 +86,19 @@ struct MY_VERTEX
 	//XMFLOAT4 rgba;
 };
 
+struct PerInstanceData
+{
+	XMFLOAT4X4 wMatrix;
+	//H2B::ATTRIBUTES currOBJAttributes;
+};
+
 struct CB_PerObject
 {
-	XMFLOAT4X4 wMatrix;					// 64 bytes
+	//XMFLOAT4X4 wMatrix;					// 64 bytes
 	XMFLOAT4X4 vMatrix;					// 64 bytes
 	XMFLOAT4X4 pMatrix;					// 64 bytes
-
 	//Assignemnt 2
 	//_OBJ_ATTRIBUTES_ currOBJAttributes;	// ?
-	
-	H2B::ATTRIBUTES currOBJAttributes;
 };
 
 struct CB_PerFrame

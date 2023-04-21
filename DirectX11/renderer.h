@@ -22,6 +22,8 @@ class Renderer
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer>		vertexBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer>		indexBuffer;
+	//std::vector<PerInstanceData>				perInstanceData;
+	Microsoft::WRL::ComPtr<ID3D11Buffer>		instanceBuffer;
 	ID3D11Buffer*								CB_PerObjectBuffer;
 	ID3D11Buffer*								CB_PerFrameBuffer;
 	Microsoft::WRL::ComPtr<ID3D11VertexShader>	vertexShader;
@@ -63,6 +65,7 @@ private:
 		
 		InitializeVertexBuffer(creator);
 		InitializeIndexBuffer(creator);
+		InitializeInstanceBuffer(creator);
 		InitializeConstantBuffer(creator);
 		InitializePipeline(creator);
 		
@@ -94,16 +97,45 @@ private:
 		creator->CreateBuffer(&bDesc, &bData, indexBuffer.GetAddressOf());
 	}
 
+	void InitializeInstanceBuffer(ID3D11Device* creator)
+	{
+		//for (size_t i = 0; i < gameManager.currentLevelData.levelTransforms.size(); i++)
+		//{
+		//	perInstanceData.push_back()
+		//}
+
+		//// Create the per-instance data
+		//for (auto matrixTransform : gameManager.currentLevelData.levelTransforms)
+		//{
+		//	perInstanceData.push_back({ matrixTransform });
+		//}
+
+		//for (auto instance : gameManager.currentLevelData.levelInstances)
+		//{
+		//	for (size_t i = 0; i < model.transformCount; i++)
+		//	{
+		//		unsigned int matindex = gameManager.currentLevelData.levelModels
+		//	}
+		//}
+		CreateInstanceBuffer(creator, gameManager.currentLevelData.levelTransforms.data(), sizeof(XMFLOAT4X4) * gameManager.currentLevelData.levelTransforms.size());
+	}
+
+	void CreateInstanceBuffer(ID3D11Device* creator, const void* data, unsigned int sizeInBytes)
+	{
+		D3D11_SUBRESOURCE_DATA bData = { data, 0, 0 };
+		CD3D11_BUFFER_DESC bDesc(sizeInBytes, D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+		creator->CreateBuffer(&bDesc, &bData, instanceBuffer.GetAddressOf());
+	}
+
 	void InitializeConstantBuffer(ID3D11Device* creator)
 	{
+		// TODO: SETUP ORIGINAL OBJ ATTRIBUTES
+
 		// Setup original PerObject constant buffer structure
-		XMStoreFloat4x4(&CB_currentPerObject.wMatrix, XMMatrixIdentity());
 		CB_currentPerObject.vMatrix = viewCamera.GetViewMatrix();
 		CB_currentPerObject.pMatrix = viewCamera.GetPerspectiveMatrix();
-		// TODO: SETUP ORIGINAL OBJ ATTRIBUTES
-		//CB_currentPerObject.currOBJAttributes = gameManager.currentLevelData.levelMaterials[i].attrib;
 
-		// Setup original perFrame constant buffer structure
+		// Setup original perFrame (lighting) constant buffer structure
 		XMStoreFloat4(&CB_currentPerFrame.lightColor, XMLoadFloat4(&m_origSunlightColor));
 		XMStoreFloat3(&CB_currentPerFrame.lightDirection, XMVector3Normalize(XMLoadFloat3(&m_originalSunlightDirection)));
 
@@ -119,7 +151,6 @@ private:
 		HRESULT hr = creator->CreateBuffer(&bDesc, nullptr, buffer);
 	}
 
-
 	void InitializePipeline(ID3D11Device* creator)
 	{
 		UINT compilerFlags = D3DCOMPILE_ENABLE_STRICTNESS;
@@ -128,7 +159,7 @@ private:
 #endif
 		Microsoft::WRL::ComPtr<ID3DBlob> vsBlob = CompileVertexShader(creator, compilerFlags);
 		Microsoft::WRL::ComPtr<ID3DBlob> psBlob = CompilePixelShader(creator, compilerFlags);
-		CreateVertexInputLayout(creator, vsBlob);
+		CreateVertexInstancedInputLayout(creator, vsBlob);
 	}
 
 	Microsoft::WRL::ComPtr<ID3DBlob> CompileVertexShader(ID3D11Device* creator, UINT compilerFlags)
@@ -204,6 +235,48 @@ private:
 			vertexFormat.GetAddressOf());
 	}
 
+	void CreateVertexInstancedInputLayout(ID3D11Device* creator, Microsoft::WRL::ComPtr<ID3DBlob>& vsBlob)
+	{
+		D3D11_INPUT_ELEMENT_DESC format[] = {
+			// PER VERTEX DATA
+			{
+				"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,
+				D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0
+			},
+			{
+				"UVCOORD", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,
+				D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0
+			},
+			{
+				"NORMDIR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,
+				D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0
+			},
+
+			// PER INSTANCE DATA
+			{
+				"WORLD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,
+				D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1
+			},
+			{
+				"WORLD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,
+				D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1
+			},
+			{
+				"WORLD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,
+				D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1
+			},
+			{
+				"WORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,
+				D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1
+			}
+
+
+
+		};
+		creator->CreateInputLayout(format, ARRAYSIZE(format),
+			vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(),
+			vertexFormat.GetAddressOf());
+	}
 
 public:
 	void Render()
@@ -222,6 +295,8 @@ public:
 		viewCamera.UpdateViewMatrix();
 		CB_currentPerObject.vMatrix = viewCamera.GetViewMatrix();
 		CB_currentPerObject.pMatrix = viewCamera.GetPerspectiveMatrix();
+
+
 
 		static float temp = 0.0001f;
 
@@ -242,31 +317,69 @@ public:
 		//		FSLogo_meshes[i].indexOffset, 0);
 		//}
 
-		for (size_t i = 0; i < gameManager.currentLevelData.levelModels.size(); i++)
+		//////////////// PRE-INSTANCING
+		//for (size_t i = 0; i < gameManager.currentLevelData.levelModels.size(); i++)
+		//{
+		//	//TODO : FIX
+		//	// Swap out matrices 
+		//	//CB_currentPerObject.wMatrix = gameManager.currentLevelData.levelTransforms[gameManager.currentLevelData.level];
+		//	XMStoreFloat4x4(&CB_currentPerObject.wMatrix, XMMatrixTranslation(i * 2, 0, 0));
+
+		//	// Load material attributes
+		//	CB_currentPerObject.currOBJAttributes = gameManager.currentLevelData.levelMaterials[i].attrib;
+		//	CB_currentPerObject.currOBJAttributes = gameManager.currentLevelData.levelMaterials[gameManager.currentLevelData.levelMeshes[i].materialIndex].attrib ;
+
+		//	CB_GPU_Upload(curHandles);
+
+		//	for (size_t j = 0; j < gameManager.currentLevelData.levelModels[i].meshCount; j++)
+		//	{
+		//		unsigned int actualMeshIndex = j + gameManager.currentLevelData.levelModels[i].meshStart;
+		//		const H2B::MESH* mesh = &gameManager.currentLevelData.levelMeshes[actualMeshIndex];
+
+		//		curHandles.context->DrawIndexed(mesh->drawInfo.indexCount,
+		//		mesh->drawInfo.indexOffset + gameManager.currentLevelData.levelModels[i].indexStart,
+		//			gameManager.currentLevelData.levelModels[i].vertexStart);
+		//	}
+		//}
+
+
+
+
+		//for (auto i : gameManager.currentLevelData.levelModels)
+		//{
+		//	// Set per instance data
+		//	//XMStoreFloat4x4(&CB_currentPerObject.instanceData.wMatrix, )
+		//	//curHandles.context->DrawIndexedInstanced(i.indexCount, )
+		//}
+
+		//CB_currentPerObject.instanceData.wMatrix
+
+		CB_GPU_Upload(curHandles);
+
+		for (auto instance : gameManager.currentLevelData.levelInstances)
 		{
-			//TODO : FIX
-			// Swap out matrices 
-			//CB_currentPerObject.wMatrix = gameManager.currentLevelData.levelTransforms[gameManager.currentLevelData.level];
-			XMStoreFloat4x4(&CB_currentPerObject.wMatrix, XMMatrixTranslation(i * 2, 0, 0));
+			Level_Data::LEVEL_MODEL* model = &gameManager.currentLevelData.levelModels[instance.modelIndex];
+			H2B::MESH* mesh = &gameManager.currentLevelData.levelMeshes[instance.modelIndex];
 
-			// Load material attributes
-			CB_currentPerObject.currOBJAttributes = gameManager.currentLevelData.levelMaterials[i].attrib;
-			CB_currentPerObject.currOBJAttributes = gameManager.currentLevelData.levelMaterials[gameManager.currentLevelData.levelMeshes[i].materialIndex].attrib ;
+			curHandles.context->DrawIndexedInstanced(model->indexCount, instance.transformCount,
+				model->indexStart, model->vertexStart, instance.transformStart);
 
-			CB_GPU_Upload(curHandles);
-
-			for (size_t j = 0; j < gameManager.currentLevelData.levelModels[i].meshCount; j++)
-			{
-				unsigned int actualMeshIndex = j + gameManager.currentLevelData.levelModels[i].meshStart;
-				const H2B::MESH* mesh = &gameManager.currentLevelData.levelMeshes[actualMeshIndex];
-
-				curHandles.context->DrawIndexed(mesh->drawInfo.indexCount,
-					mesh->drawInfo.indexOffset + gameManager.currentLevelData.levelModels[i].indexStart,
-					gameManager.currentLevelData.levelModels[i].vertexStart);
-			}
+			/*curHandles.context->DrawIndexedInstanced(model->indexCount, instance.transformCount,
+				model->indexStart, model->vertexStart,model->model->meshCount);*/
 		}
 
+		//for (auto instance : gameManager.currentLevelData.levelInstances)
+		//{
+		//	Level_Data::LEVEL_MODEL* model = &gameManager.currentLevelData.levelModels[instance.modelIndex];
+		//	
+		//	for (size_t meshIndex = model->meshStart; meshIndex < model->meshCount; meshIndex++)
+		//	{
 
+
+		//		curHandles.context->DrawIndexedInstanced(model->indexCount, instance.transformCount,
+		//			model->indexStart, model->vertexStart, gameManager.currentLevelData.levelMeshes[meshIndex].drawInfo.indexOffset);
+		//	}
+		//}
 
 		temp += 0.005f;
 
@@ -394,9 +507,9 @@ private:
 
 	void SetVertexBuffers(PipelineHandles handles)
 	{
-		const UINT strides[] = { sizeof(float) * 9 };
-		const UINT offsets[] = { 0 };
-		ID3D11Buffer* const buffs[] = { vertexBuffer.Get() };
+		const UINT strides[] = {sizeof(H2B::VERTEX), sizeof(PerInstanceData)};
+		const UINT offsets[] = { 0, 0 };
+		ID3D11Buffer* const buffs[] = { vertexBuffer.Get(), instanceBuffer.Get()};
 		handles.context->IASetVertexBuffers(0, ARRAYSIZE(buffs), buffs, strides, offsets);
 	}
 
@@ -434,9 +547,9 @@ private:
 		// Upload matrices to the GPU
 		D3D11_MAPPED_SUBRESOURCE gpuBuffer;
 		D3D11_MAPPED_SUBRESOURCE gpuBuffer2;
+
 		// Disable GPU access to the constant buffer 
 		HRESULT hr = curHandles.context->Map(CB_PerObjectBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &gpuBuffer);
-		//*((WVP*)(gpuBuffer.pData)) = sceneMatrices;
 		memcpy(gpuBuffer.pData, &CB_currentPerObject, sizeof(CB_PerObject));
 		curHandles.context->Unmap(CB_PerObjectBuffer, 0);
 

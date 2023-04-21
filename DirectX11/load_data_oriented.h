@@ -140,8 +140,8 @@ private:
 
 					// read floats
 					std::sscanf(linebuffer + 13, "%f, %f, %f, %f",
-						&transform.m[x1][y1], &transform.m[x2][y2],
-						&transform.m[x3][y3], &transform.m[x4][y4]);
+						&transform.m[y1][x1], &transform.m[y2][x2],
+						&transform.m[y3][x3], &transform.m[y4][x4]);
 					
 				}
 				std::string loc = "Location: X ";
