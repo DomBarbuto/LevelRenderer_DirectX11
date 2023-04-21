@@ -49,6 +49,7 @@ int main()
 					if (timer.duration.count() > m_frameTime)
 					{
 						//std::cout << "time since last draw = " << timer.duration.count() /1000.0f << std::endl;
+						std::cout << "FPS: " << timer.duration.count() * 60 << std::endl;
 
 						// Start the clock
 						timer.start = timer.now = timer.clock.now();

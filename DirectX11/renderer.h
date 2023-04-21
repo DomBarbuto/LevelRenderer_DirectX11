@@ -99,24 +99,6 @@ private:
 
 	void InitializeInstanceBuffer(ID3D11Device* creator)
 	{
-		//for (size_t i = 0; i < gameManager.currentLevelData.levelTransforms.size(); i++)
-		//{
-		//	perInstanceData.push_back()
-		//}
-
-		//// Create the per-instance data
-		//for (auto matrixTransform : gameManager.currentLevelData.levelTransforms)
-		//{
-		//	perInstanceData.push_back({ matrixTransform });
-		//}
-
-		//for (auto instance : gameManager.currentLevelData.levelInstances)
-		//{
-		//	for (size_t i = 0; i < model.transformCount; i++)
-		//	{
-		//		unsigned int matindex = gameManager.currentLevelData.levelModels
-		//	}
-		//}
 		CreateInstanceBuffer(creator, gameManager.currentLevelData.levelTransforms.data(), sizeof(XMFLOAT4X4) * gameManager.currentLevelData.levelTransforms.size());
 	}
 
@@ -361,6 +343,10 @@ public:
 			Level_Data::LEVEL_MODEL* model = &gameManager.currentLevelData.levelModels[instance.modelIndex];
 			H2B::MESH* mesh = &gameManager.currentLevelData.levelMeshes[instance.modelIndex];
 
+			// THIS IS THE CORRECT STATEMENT
+			/*curHandles.context->DrawIndexedInstanced(model->indexCount, instance.transformCount,
+				model->indexStart, model->vertexStart, instance.transformStart);*/
+
 			curHandles.context->DrawIndexedInstanced(model->indexCount, instance.transformCount,
 				model->indexStart, model->vertexStart, instance.transformStart);
 
@@ -401,7 +387,7 @@ public:
 		bool isConnected = false;
 		controllerInput.IsConnected(0, isConnected);
 
-		// Only get the controlle states if the controller is connected
+		// Only get the controller states if the controller is connected
 		if (isConnected)
 		{
 			controllerInput.GetState(0, G_LX_AXIS, lStickXAxis);
@@ -412,7 +398,7 @@ public:
 			controllerInput.GetState(0, G_RIGHT_SHOULDER_BTN, rShoulderBtn);
 		}
 
-		// Movement
+		// Movement {if: keyboard input, else if: controller input}
 		// Walk Forward
 		if (GetAsyncKeyState('W'))
 			viewCamera.Walk(viewCamera.GetCamMoveSpeed());
@@ -450,15 +436,17 @@ public:
 			viewCamera.Slide(-viewCamera.GetCamMoveSpeed() * lShoulderBtn);
 
 		// Rotation
+		// MOUSE
 		float dx = 0.0f;
 		float dy = 0.0f;
 		GReturn mouseReturn = kbmInput.GetMouseDelta(dx, dy);
-		// If there was movement
+		// If there was mouse movement
 		if (mouseReturn != GReturn::REDUNDANT)
 		{
 			viewCamera.PitchX(XMConvertToRadians( 0.1f * dy));
 			viewCamera.YawY(XMConvertToRadians(0.1f * dx));
 		}
+		// CONTROLLER
 		else
 		{
 			// Look left/right

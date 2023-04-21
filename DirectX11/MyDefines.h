@@ -69,7 +69,7 @@ return 0;
 
 UINT m_windowWidth = 800;
 UINT m_windowHeight = 600;
-float m_targetFPS = 60.0f;
+float m_targetFPS = 30.0f;
 float m_frameTime = 1.0f / m_targetFPS;
 
 UINT m_gridDensity = 25;			// 25 is default

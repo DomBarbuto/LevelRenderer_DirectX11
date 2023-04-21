@@ -14,6 +14,11 @@ public:
 		unsigned vertexCount, indexCount, materialCount, meshCount;
 		unsigned vertexStart, indexStart, materialStart, meshStart, batchStart;
 	};
+	struct POINT_LIGHT
+	{
+		std::string filename;
+		GW::MATH::GMATRIXF transform;
+	};
 	struct MODEL_INSTANCES // each instance of a model in the level
 	{
 		unsigned modelIndex, transformStart, transformCount, flags; // flags optional
@@ -30,13 +35,16 @@ public:
 	// This could be populated by the Level_Renderer during GPU transfer
 	std::vector<MATERIAL_TEXTURES> levelTextures; // same size as LevelMaterials
 	// All transform data used by each model
-	std::vector<XMFLOAT4X4> levelTransforms;
+	std::vector<GW::MATH::GMATRIXF> levelTransforms;
 	// All required drawing information combined
 	std::vector<H2B::BATCH> levelBatches;
 	std::vector<H2B::MESH> levelMeshes;
 	std::vector<LEVEL_MODEL> levelModels;
 	// what we actually draw once loaded (using GPU instancing)
 	std::vector<MODEL_INSTANCES> levelInstances;
+
+	//LIGHTS
+	std::vector<POINT_LIGHT> pointLights;
 	
 	// Imports the default level txt format and collects all .h2b data
 	bool LoadLevel(	const char* gameLevelPath, 
@@ -88,7 +96,7 @@ private:
 	struct MODEL_ENTRY
 	{
 		std::string modelFile; // path to .h2b file
-		mutable std::vector<XMFLOAT4X4> instances; // where to draw
+		mutable std::vector<GW::MATH::GMATRIXF> instances; // where to draw
 		bool operator<(const MODEL_ENTRY& cmp) const {
 			return modelFile < cmp.modelFile; // you need this for std::set to work
 		}
@@ -120,35 +128,19 @@ private:
 				add.modelFile = add.modelFile.substr(0, add.modelFile.find_last_of("."));
 				add.modelFile += ".h2b";
 
-				// Swapped out from GMATRIXF fucntionality to DirectX::XMFLOAT4X4 functionality.
-				// The GMATRIXF has a 1D array storing the 16 elements. XMFLOAT4X4 has a 2D array
-				// storing its 16 elements. Must convert using the input parameters that were here before.
-				// NOTE: Convert1D2D is only intended for 4x4 matrices.
-				XMFLOAT4X4 transform;
+				// now read the transform data as we will need that regardless
+				GW::MATH::GMATRIXF transform;
 				for (int i = 0; i < 4; ++i) {
 					file.ReadLine(linebuffer, 1024, '\n');
-
-					// Because we switched from Gateware matrix type to directx matrix type, calling convert 
-					// from 2d array to 1d array 4 times per loop
-					unsigned int x1, x2, x3, x4;
-					unsigned int y1, y2, y3, y4;
-					// The first parameters here are pulled from original code (indexing into GMATRIXF.data)
-					Convert1D2D(0 + i * 4, x1, y1);	//1 
-					Convert1D2D(1 + i * 4, x2, y2);	//2
-					Convert1D2D(2 + i * 4, x3, y3);	//3
-					Convert1D2D(3 + i * 4, x4, y4);	//4
-
 					// read floats
 					std::sscanf(linebuffer + 13, "%f, %f, %f, %f",
-						&transform.m[y1][x1], &transform.m[y2][x2],
-						&transform.m[y3][x3], &transform.m[y4][x4]);
-					
+						&transform.data[0 + i * 4], &transform.data[1 + i * 4],
+						&transform.data[2 + i * 4], &transform.data[3 + i * 4]);
 				}
 				std::string loc = "Location: X ";
-				loc += std::to_string(transform._41) + " Y " +
-					std::to_string(transform._42) + " Z " + std::to_string(transform._43);
+				loc += std::to_string(transform.row4.x) + " Y " +
+					std::to_string(transform.row4.y) + " Z " + std::to_string(transform.row4.z);
 				log.LogCategorized("INFO", loc.c_str());
-
 
 				// does this model already exist?
 				auto found = outModels.find(add);
@@ -159,6 +151,31 @@ private:
 				}
 				else // yes
 					found->instances.push_back(transform);
+			}
+			else if (std::strcmp(linebuffer, "LIGHT") == 0)
+			{
+				file.ReadLine(linebuffer, 1024, '\n');
+				log.LogCategorized("INFO", (std::string("Light Detected: ") + linebuffer).c_str());
+				// create the model file name from this (strip the .001)
+				POINT_LIGHT add = { linebuffer };
+				//add.filename = add.file.substr(0, add.modelFile.find_last_of("."));
+				// now read the transform data as we will need that regardless
+				GW::MATH::GMATRIXF transform;
+				for (int i = 0; i < 4; ++i) {
+					file.ReadLine(linebuffer, 1024, '\n');
+					// read floats
+					std::sscanf(linebuffer + 13, "%f, %f, %f, %f",
+						&transform.data[0 + i * 4], &transform.data[1 + i * 4],
+						&transform.data[2 + i * 4], &transform.data[3 + i * 4]);
+				}
+				add.transform = transform;
+				pointLights.push_back(add);
+
+				std::string loc = "Location: X ";
+				loc += std::to_string(transform.row4.x) + " Y " +
+					std::to_string(transform.row4.y) + " Z " + std::to_string(transform.row4.z);
+				log.LogCategorized("INFO", loc.c_str());
+
 			}
 		}
 		log.LogCategorized("MESSAGE", "Game Level File Reading Complete.");
