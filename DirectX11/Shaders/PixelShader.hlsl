@@ -25,6 +25,7 @@ cbuffer CB_PerObject : register(b0)
 {
     float4x4 vMatrix;
     float4x4 pMatrix;
+    OBJ_ATTRIBUTES attributes[10];
 };
 
 cbuffer CB_PerFrame : register(b1)
@@ -41,6 +42,7 @@ struct VERTEX_In
     float3 NormalW : NORMDIR;
     float3 PositionW : WORLDPOS;
     float3 PositionW_Cam : WORLDCAMPOS;
+    uint InstanceID : ID;
 };
 
 static float4 ambientTerm = float4(0.75f, 0.75f, 0.75f, 1.0f);

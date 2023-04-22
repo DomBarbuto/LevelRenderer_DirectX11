@@ -24,6 +24,7 @@ struct VERTEX_Out
 	float3 NormalW		:	NORMDIR;
     float3 PositionW    :   WORLDPOS;
     float3 PositionW_Cam :  WORLDCAMPOS;
+    uint InstanceID : ID;
 };
 
 VERTEX_Out main(VERTEX_In vIn)

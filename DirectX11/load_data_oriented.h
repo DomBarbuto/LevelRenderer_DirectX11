@@ -44,7 +44,7 @@ public:
 	std::vector<MODEL_INSTANCES> levelInstances;
 
 	//LIGHTS
-	std::vector<POINT_LIGHT> pointLights;
+	std::vector<POINT_LIGHT> levelPointLights;
 	
 	// Imports the default level txt format and collects all .h2b data
 	bool LoadLevel(	const char* gameLevelPath, 
@@ -85,6 +85,7 @@ public:
 		levelModels.clear();
 		levelTransforms.clear();
 		levelInstances.clear();
+
 	}
 	// *NO RENDERING/GPU/DRAW LOGIC IN HERE PLEASE* 
 	// *DATA ORIENTED SHOULD AIM TO SEPERATE DATA FROM THE LOGIC THAT USES IT*
@@ -169,7 +170,7 @@ private:
 						&transform.data[2 + i * 4], &transform.data[3 + i * 4]);
 				}
 				add.transform = transform;
-				pointLights.push_back(add);
+				levelPointLights.push_back(add);
 
 				std::string loc = "Location: X ";
 				loc += std::to_string(transform.row4.x) + " Y " +

@@ -1,0 +1,5 @@
+[Fri Apr 21 02:25:40 2023] ThreadID[37484]	Started game.
+[Fri Apr 21 02:25:40 2023] ThreadID[37484]	[EVENT]	LOADING GAME LEVEL [DATA ORIENTED]
+[Fri Apr 21 02:25:40 2023] ThreadID[37484]	[MESSAGE]	Begin Reading Game Level Text File.
+[Fri Apr 21 02:25:40 2023] ThreadID[37484]	[ERROR]	Game level not found: ../GameLevel.txt
+[Fri Apr 21 02:25:40 2023] ThreadID[37484]	[ERROR]	Fatal error reading game level, aborting level load.

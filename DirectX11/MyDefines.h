@@ -67,8 +67,8 @@ return 0;
 
 //////////////////////// Members ////////////////////////
 
-UINT m_windowWidth = 800;
-UINT m_windowHeight = 600;
+UINT m_windowWidth = 1080;
+UINT m_windowHeight = 720;
 float m_targetFPS = 30.0f;
 float m_frameTime = 1.0f / m_targetFPS;
 

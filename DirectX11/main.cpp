@@ -18,7 +18,7 @@ int main()
 		win.SetWindowName("Dominic Barbuto - Programming Assignment 2");
 
 		// Set back buffer color
-		float clr[] = { 33/255.0f, 43/255.0f, 78/255.0f, 1 }; // start with a neon green
+		float clr[] = { 13/255.0f, 18/255.0f, 43/255.0f, 1 }; // Dark, night sky color
 
 		// Create event responder
 		msgs.Create([&](const GW::GEvent& e) {
