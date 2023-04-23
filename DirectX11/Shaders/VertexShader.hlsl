@@ -6,6 +6,7 @@ cbuffer CB_PerObject : register(b0)
 {
     float4x4 vMatrix;
     float4x4 pMatrix;
+    float4 matIndex;
 };
 
 struct VERTEX_In
@@ -14,7 +15,6 @@ struct VERTEX_In
 	float3 UV		    :	UVCOORD;
     float3 NormalL		:	NORMDIR;
     float4x4 wMatrix    :   WORLD;
-    uint InstanceID     :   SV_InstanceID;
 };
 
 struct VERTEX_Out
@@ -24,7 +24,6 @@ struct VERTEX_Out
 	float3 NormalW		:	NORMDIR;
     float3 PositionW    :   WORLDPOS;
     float3 PositionW_Cam :  WORLDCAMPOS;
-    uint InstanceID : ID;
 };
 
 VERTEX_Out main(VERTEX_In vIn)

@@ -69,7 +69,7 @@ return 0;
 
 UINT m_windowWidth = 1080;
 UINT m_windowHeight = 720;
-float m_targetFPS = 30.0f;
+float m_targetFPS = 60.0f;
 float m_frameTime = 1.0f / m_targetFPS;
 
 UINT m_gridDensity = 25;			// 25 is default
@@ -89,16 +89,19 @@ struct MY_VERTEX
 struct PerInstanceData
 {
 	XMFLOAT4X4 wMatrix;
-	//H2B::ATTRIBUTES currOBJAttributes;
+};
+
+struct CB_PerScene
+{
+	H2B::ATTRIBUTES currOBJAttributes[17];	// ?
 };
 
 struct CB_PerObject
 {
-	//XMFLOAT4X4 wMatrix;					// 64 bytes
+	//XMFLOAT4X4 wMatrix;				// 64 bytes
 	XMFLOAT4X4 vMatrix;					// 64 bytes
 	XMFLOAT4X4 pMatrix;					// 64 bytes
-	//Assignemnt 2
-	//_OBJ_ATTRIBUTES_ currOBJAttributes;	// ?
+	XMFLOAT4 materialIndex;				// Replicated for byte-align
 };
 
 struct CB_PerFrame

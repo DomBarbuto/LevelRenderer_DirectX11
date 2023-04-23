@@ -24,6 +24,7 @@ class Renderer
 	Microsoft::WRL::ComPtr<ID3D11Buffer>		indexBuffer;
 	//std::vector<PerInstanceData>				perInstanceData;
 	Microsoft::WRL::ComPtr<ID3D11Buffer>		instanceBuffer;
+	ID3D11Buffer*								CB_PerSceneBuffer;
 	ID3D11Buffer*								CB_PerObjectBuffer;
 	ID3D11Buffer*								CB_PerFrameBuffer;
 	Microsoft::WRL::ComPtr<ID3D11VertexShader>	vertexShader;
@@ -38,6 +39,7 @@ class Renderer
 	Camera viewCamera = Camera((float)m_windowWidth / m_windowHeight);
 
 	// Data sent to constant buffers
+	CB_PerScene CB_currentPerScene;
 	CB_PerObject CB_currentPerObject;
 	CB_PerFrame CB_currentPerFrame;
 
@@ -119,25 +121,31 @@ private:
 
 	void InitializeConstantBuffer(ID3D11Device* creator)
 	{
-		// TODO: SETUP ORIGINAL OBJ ATTRIBUTES
+		// Setup per scene buffer
+		//CB_currentPerScene.currOBJAttributes = gameManager.currentLevelData.levelAttributes;
+		for (size_t i = 0; i < gameManager.currentLevelData.levelAttributes.size(); i++)
+		{
+			CB_currentPerScene.currOBJAttributes[i] = gameManager.currentLevelData.levelAttributes[i];
+		}
 
 		// Setup original PerObject constant buffer structure
 		CB_currentPerObject.vMatrix = viewCamera.GetViewMatrix();
 		CB_currentPerObject.pMatrix = viewCamera.GetPerspectiveMatrix();
+		XMStoreFloat4(&CB_currentPerObject.materialIndex, XMVectorReplicate(0.0f));
 
 		// Setup original perFrame (lighting) constant buffer structure
 		XMStoreFloat4(&CB_currentPerFrame.lightColor, XMLoadFloat4(&m_origSunlightColor));
 		XMStoreFloat3(&CB_currentPerFrame.lightDirection, XMVector3Normalize(XMLoadFloat3(&m_originalSunlightDirection)));
 
 		// Create the constant buffers
-		CreateConstantBuffer(creator, &CB_currentPerObject, sizeof(CB_PerObject), &CB_PerObjectBuffer);
-		CreateConstantBuffer(creator, &CB_currentPerFrame, sizeof(CB_PerFrame), &CB_PerFrameBuffer);
+		CreateConstantBuffer(creator, sizeof(CB_PerObject), &CB_PerObjectBuffer, D3D11_USAGE_DYNAMIC);
+		CreateConstantBuffer(creator, sizeof(CB_PerFrame), &CB_PerFrameBuffer, D3D11_USAGE_DYNAMIC);
+		CreateConstantBuffer(creator, sizeof(CB_PerScene), &CB_PerSceneBuffer, D3D11_USAGE_DYNAMIC);
 	}
 
-	void CreateConstantBuffer(ID3D11Device* creator, const void* data, unsigned int sizeInBytes, ID3D11Buffer** buffer)
+	void CreateConstantBuffer(ID3D11Device* creator, unsigned int sizeInBytes, ID3D11Buffer** buffer, D3D11_USAGE usageFlag)
 	{
-		//D3D11_SUBRESOURCE_DATA bData = { data, 0, 0 };
-		CD3D11_BUFFER_DESC bDesc(sizeInBytes, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+		CD3D11_BUFFER_DESC bDesc(sizeInBytes, D3D11_BIND_CONSTANT_BUFFER, usageFlag, D3D11_CPU_ACCESS_WRITE);
 		HRESULT hr = creator->CreateBuffer(&bDesc, nullptr, buffer);
 	}
 
@@ -274,9 +282,6 @@ private:
 				"WORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1,
 				D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1
 			}
-
-
-
 		};
 		creator->CreateInputLayout(format, ARRAYSIZE(format),
 			vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(),
@@ -303,33 +308,21 @@ public:
 
 		//static float temp = 0.0001f;
 
-		// Assignment2
-		//for (size_t i = 0; i < FSLogo_meshcount; i++)
-		//{
-		//	// Drawing text - stationary
-		//	if (i == 0)
-		//		XMStoreFloat4x4(&CB_currentPerObject.wMatrix, XMMatrixIdentity());
-		//	// Drawing logo, rotating
-		//	else
-		//		XMStoreFloat4x4(&CB_currentPerObject.wMatrix, XMMatrixRotationY( temp ));
-
-		//	// Swap out constant buffer obj attributes for respective oject
-		//	CB_currentPerObject.currOBJAttributes = FSLogo_materials[FSLogo_meshes[i].materialIndex].attrib;
-		//	CB_GPU_Upload(curHandles);
-		//	curHandles.context->DrawIndexed(FSLogo_meshes[i].indexCount,
-		//		FSLogo_meshes[i].indexOffset, 0);
-		//}
-
-		CB_GPU_Upload(curHandles);
+		CB_GPU_Upload_Default(curHandles);
 
 		for (auto instance : gameManager.currentLevelData.levelInstances)
 		{
+			CB_GPU_Upload_Dynamic(curHandles);
 			Level_Data::LEVEL_MODEL* model = &gameManager.currentLevelData.levelModels[instance.modelIndex];
 
 			curHandles.context->DrawIndexedInstanced(model->indexCount, instance.transformCount,
 				model->indexStart, model->vertexStart, instance.transformStart);
-		}
 
+			// Increment the material index after drawing every instance of this object
+			CB_currentPerObject.materialIndex.x++;
+
+		}
+		CB_currentPerObject.materialIndex.x = 0;
 		//temp += 0.005f;
 
 		ReleasePipelineHandles(curHandles);
@@ -473,10 +466,12 @@ private:
 
 	void SetConstantBuffers(PipelineHandles handles)
 	{
-		ID3D11Buffer* const constantBuffers[] = { CB_PerObjectBuffer, CB_PerFrameBuffer };
+		ID3D11Buffer* const constantBuffers[] = { CB_PerObjectBuffer, CB_PerFrameBuffer, CB_PerSceneBuffer };
 		handles.context->VSSetConstantBuffers(0, 1, &constantBuffers[0]);
+		
 		handles.context->PSSetConstantBuffers(0, 1, &constantBuffers[0]);
 		handles.context->PSSetConstantBuffers(1, 1, &constantBuffers[1]);
+		handles.context->PSSetConstantBuffers(2, 1, &constantBuffers[2]);
 	}
 
 	void SetShaders(PipelineHandles handles)
@@ -499,7 +494,18 @@ private:
 
 	/////////////////////////////////////////////////////////////////////////////
 
-	void CB_GPU_Upload(Renderer::PipelineHandles& curHandles)
+	void CB_GPU_Upload_Default(Renderer::PipelineHandles& curHandles)
+	{
+		// Upload matrices to the GPU
+		D3D11_MAPPED_SUBRESOURCE gpuBuffer;
+
+		// Disable GPU access to the constant buffer 
+		HRESULT hr = curHandles.context->Map(CB_PerSceneBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &gpuBuffer);
+		memcpy(gpuBuffer.pData, &CB_currentPerScene, sizeof(CB_PerScene));
+		curHandles.context->Unmap(CB_PerSceneBuffer, 0);
+	}
+
+	void CB_GPU_Upload_Dynamic(Renderer::PipelineHandles& curHandles)
 	{
 		// Upload matrices to the GPU
 		D3D11_MAPPED_SUBRESOURCE gpuBuffer;

@@ -15,18 +15,12 @@ struct OBJ_ATTRIBUTES
     float illuminationModel;
 };
 
-//struct PerInstanceData
-//{
-//    float4x4 wMatrix;
-//    OBJ_ATTRIBUTES objAtt;
-//};
-
 cbuffer CB_PerObject : register(b0)
 {
     float4x4 vMatrix;
     float4x4 pMatrix;
-    OBJ_ATTRIBUTES attributes[10];
-};
+    float4 matIndex;
+}
 
 cbuffer CB_PerFrame : register(b1)
 {
@@ -35,6 +29,11 @@ cbuffer CB_PerFrame : register(b1)
     float padding;
 };
 
+cbuffer CB_PerScene : register(b2)
+{
+    OBJ_ATTRIBUTES atts[17];
+}
+
 struct VERTEX_In
 {
     float4 PosH : SV_POSITION;
@@ -42,15 +41,15 @@ struct VERTEX_In
     float3 NormalW : NORMDIR;
     float3 PositionW : WORLDPOS;
     float3 PositionW_Cam : WORLDCAMPOS;
-    uint InstanceID : ID;
 };
 
 static float4 ambientTerm = float4(0.75f, 0.75f, 0.75f, 1.0f);
 
 float4 main(VERTEX_In vIn) : SV_TARGET
 {
-    //float4 surfaceColor = float4(objAtt.diffuseReflectivity, 1.0f);
-    float4 surfaceColor = float4(0.5f, 0.5f, 0.5f, 1.0f);
+    // atts[vIn.InstanceID]
+    float4 surfaceColor = float4(atts[matIndex.x].diffuseReflectivity, 1.0f);
+    ////float4 surfaceColor = float4(0.5f, 0.5f, 0.5f, 1.0f); //TEST
     
     // Ambient and directional light
     float4 ambient = ambientTerm * surfaceColor;
@@ -63,13 +62,13 @@ float4 main(VERTEX_In vIn) : SV_TARGET
     float3 halfVec = normalize((-directionalLightDir) + viewDir);
     //float3 reflectVec = reflect(normalize(directionalLightDir), vIn.iNrm);
     float dotProduct = max(0.0f, dot(vIn.NormalW, halfVec));
-    //float intensity = pow(saturate(dotProduct), objAtt.specularExponent);
-    float intensity = pow(saturate(dotProduct), 20); // delete
+    float intensity = pow(saturate(dotProduct), atts[matIndex.x].specularExponent);
+    //float intensity = pow(saturate(dotProduct), 20); // delete
     
     // Done
     //return color;
-    //return color += (float4(objAtt.specularReflectivity, 1.0f) * intensity);
-    return color += (float4(0.1f, 0.1f, 0.1f, 1.0f) * intensity);//DELETE
-    //return float4(halfVec, 1.0f);
-    //return float4(vIn.iNrm, 1.0f); // Normal direction test
+    return color += (float4(atts[matIndex.x].specularReflectivity, 1.0f) * intensity);
+    //return color += (float4(0.1f, 0.1f, 0.1f, 1.0f) * intensity);//DELETE
+    ////return float4(halfVec, 1.0f);
+    //return float4(vIn.NormalW, 1.0f); // Normal direction test
 }

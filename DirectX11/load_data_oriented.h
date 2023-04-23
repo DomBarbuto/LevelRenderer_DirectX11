@@ -32,6 +32,7 @@ public:
 	std::vector<unsigned> levelIndices;
 	// All material data used by the level
 	std::vector<H2B::MATERIAL> levelMaterials;
+	std::vector<H2B::ATTRIBUTES> levelAttributes;	// MAYBE DELETE
 	// This could be populated by the Level_Renderer during GPU transfer
 	std::vector<MATERIAL_TEXTURES> levelTextures; // same size as LevelMaterials
 	// All transform data used by each model
@@ -69,6 +70,16 @@ public:
 			log.LogCategorized("ERROR", "Fatal error combining H2B mesh data, aborting level load.");
 			return false;
 		}
+
+		// MAYBE DELETE
+		if (levelMaterials.size() != 0)
+		{
+			for (size_t i = 0; i < levelMaterials.size(); i++)
+			{
+				levelAttributes.push_back(levelMaterials[i].attrib);
+			}
+		}
+
 		// level loaded into CPU ram
 		log.LogCategorized("EVENT", "GAME LEVEL WAS LOADED TO CPU [DATA ORIENTED]");
 		return true;
