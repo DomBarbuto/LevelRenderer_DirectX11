@@ -96,6 +96,7 @@ struct PerInstanceData
 	XMFLOAT4X4 wMatrix;
 };
 
+// Needs to be 16 byte aligned
 struct POINT_LIGHT
 {
 	GW::MATH::GMATRIXF transform;
@@ -106,6 +107,7 @@ struct POINT_LIGHT
 	float l_attenuation;
 };
 
+// Needs to be 16 byte aligned
 struct SPOT_LIGHT
 {
 	GW::MATH::GMATRIXF transform;
@@ -115,11 +117,16 @@ struct SPOT_LIGHT
 	float q_attenuation;
 	float l_attenuation;
 	float spotSize;
+	float padding1, padding2, padding3;
 };
 
 struct CB_PerScene
 {
 	H2B::ATTRIBUTES currOBJAttributes[17];	// ?
+	float numPointLights;
+	float numSpotLights;
+	float pad1;
+	float pad2;
 };
 
 struct CB_PerObject

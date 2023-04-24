@@ -15,6 +15,30 @@ struct OBJ_ATTRIBUTES
     float illuminationModel;
 };
 
+// Needs to be 16 byte aligned
+struct POINT_LIGHT
+{
+    float4x4 transform;
+    float4 color;
+    float energy;
+    float distance;
+    float q_attenuation;
+    float l_attenuation;
+};
+
+// Needs to be 16 byte aligned
+struct SPOT_LIGHT
+{
+    float4x4 transform;
+    float4 color;
+    float energy;
+    float distance;
+    float q_attenuation;
+    float l_attenuation;
+    float spotSize;
+    float padding1, padding2, padding3;
+};
+
 cbuffer CB_PerObject : register(b0)
 {
     float4x4 vMatrix;
@@ -27,11 +51,17 @@ cbuffer CB_PerFrame : register(b1)
     float4 directionalLightColor;
     float3 directionalLightDir;
     float padding;
+    POINT_LIGHT pointLights[16];
+    SPOT_LIGHT spotLights[16];
 };
 
 cbuffer CB_PerScene : register(b2)
 {
     OBJ_ATTRIBUTES atts[17];
+    float numPointLights;
+    float numSpotLights;
+    float pad1;
+    float pad2;
 }
 
 struct VERTEX_In

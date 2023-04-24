@@ -121,12 +121,8 @@ private:
 
 	void InitializeConstantBuffer(ID3D11Device* creator)
 	{
-		// Setup per scene buffer
-		//CB_currentPerScene.currOBJAttributes = gameManager.currentLevelData.levelAttributes;
-		for (size_t i = 0; i < gameManager.currentLevelData.levelAttributes.size(); i++)
-		{
-			CB_currentPerScene.currOBJAttributes[i] = gameManager.currentLevelData.levelAttributes[i];
-		}
+		PipelineHandles currHandles = GetCurrentPipelineHandles();
+
 
 		// Setup original PerObject constant buffer structure
 		CB_currentPerObject.vMatrix = viewCamera.GetViewMatrix();
@@ -136,11 +132,31 @@ private:
 		// Setup original perFrame (lighting) constant buffer structure
 		XMStoreFloat4(&CB_currentPerFrame.dirLight_Color, XMLoadFloat4(&m_origSunlightColor));
 		XMStoreFloat3(&CB_currentPerFrame.dirLight_Direction, XMVector3Normalize(XMLoadFloat3(&m_originalSunlightDirection)));
+		for (size_t i = 0; i < gameManager.currentLevelData.levelPointLights.size(); i++)
+		{
+			CB_currentPerFrame.pointLights[i] = gameManager.currentLevelData.levelPointLights[i];
+		}
+		for (size_t i = 0; i < gameManager.currentLevelData.levelSpotLights.size(); i++)
+		{
+			CB_currentPerFrame.spotLights[i] = gameManager.currentLevelData.levelSpotLights[i];
+		}
+
+		// Setup per scene buffer
+		//CB_currentPerScene.currOBJAttributes = gameManager.currentLevelData.levelAttributes;
+		for (size_t i = 0; i < gameManager.currentLevelData.levelAttributes.size(); i++)
+		{
+			CB_currentPerScene.currOBJAttributes[i] = gameManager.currentLevelData.levelAttributes[i];
+		}
+		CB_currentPerScene.numPointLights = gameManager.currentLevelData.levelPointLights.size();
+		CB_currentPerScene.numSpotLights = gameManager.currentLevelData.levelSpotLights.size();
 
 		// Create the constant buffers
 		CreateConstantBuffer(creator, sizeof(CB_PerObject), &CB_PerObjectBuffer, D3D11_USAGE_DYNAMIC);
 		CreateConstantBuffer(creator, sizeof(CB_PerFrame), &CB_PerFrameBuffer, D3D11_USAGE_DYNAMIC);
 		CreateConstantBuffer(creator, sizeof(CB_PerScene), &CB_PerSceneBuffer, D3D11_USAGE_DYNAMIC);
+
+		// UPLOAD PER-SCENE CONSTANT BUFFER
+		CB_GPU_UPLOAD_PER_SCENE(currHandles);
 	}
 
 	void CreateConstantBuffer(ID3D11Device* creator, unsigned int sizeInBytes, ID3D11Buffer** buffer, D3D11_USAGE usageFlag)
@@ -306,45 +322,12 @@ public:
 		CB_currentPerObject.vMatrix = viewCamera.GetViewMatrix();
 		CB_currentPerObject.pMatrix = viewCamera.GetPerspectiveMatrix();
 
-		//static float temp = 0.0001f;
+		// static float temp = 0.0001f;
+		
+		// Upload per frame constant buffer (lighting changes)
+		CB_GPU_UPLOAD_PER_FRAME(curHandles);
 
-		//CB_GPU_Upload_Default(curHandles);
-
-		//// Partially working materials
-		//for (auto instance : gameManager.currentLevelData.levelInstances)
-		//{
-		//	CB_GPU_Upload_Dynamic(curHandles);
-		//	Level_Data::LEVEL_MODEL* model = &gameManager.currentLevelData.levelModels[instance.modelIndex];
-
-		//	curHandles.context->DrawIndexedInstanced(model->indexCount, instance.transformCount,
-		//		model->indexStart, model->vertexStart, instance.transformStart);
-
-		//	// Increment the material index after drawing every instance of this object
-		//	CB_currentPerObject.materialIndex.x++;
-
-		//}
-		//CB_currentPerObject.materialIndex.x = 0;
-
-
-
-
-
-		// TAKE-2
-		/*CB_GPU_Upload_Default(curHandles);
-		for (auto model : gameManager.currentLevelData.levelModels)
-		{
-			for (size_t meshIndex = 0; meshIndex < model.meshCount; meshIndex++)
-			{
-				H2B::MESH* mesh = &gameManager.currentLevelData.levelMeshes[meshIndex];
-
-				curHandles.context->DrawIndexedInstanced(mesh->drawInfo.indexCount, )
-			}
-		}*/
-
-
-		// TAKE 3
-		CB_GPU_Upload_Default(curHandles); // Upload per scene
-
+		// Draw via GPU instancing 
 		for (auto instance : gameManager.currentLevelData.levelInstances)
 		{
 			Level_Data::LEVEL_MODEL* model
@@ -358,7 +341,8 @@ public:
 
 				CB_currentPerObject.materialIndex.x = model->materialStart + mesh->materialIndex;
 
-				CB_GPU_Upload_Dynamic(curHandles);
+				// Upload per object buffer
+				CB_GPU_UPLOAD_PER_OBJECT(curHandles);
 				curHandles.context->DrawIndexedInstanced(mesh->drawInfo.indexCount, instance.transformCount,
 					model->indexStart + mesh->drawInfo.indexOffset, model->vertexStart, instance.transformStart);
 			}
@@ -536,7 +520,7 @@ private:
 	/////////////////////////////////////////////////////////////////////////////
 
 	// UPDATE PER-SCENE CONSTANT BUFFER
-	void CB_GPU_Upload_Default(Renderer::PipelineHandles& curHandles)
+	void CB_GPU_UPLOAD_PER_SCENE(Renderer::PipelineHandles& curHandles)
 	{
 		// Upload matrices to the GPU
 		D3D11_MAPPED_SUBRESOURCE gpuBuffer;
@@ -548,20 +532,26 @@ private:
 	}
 
 	// UPDATE PER-OBJECT AND PER-FRAME CONSTANT BUFFER
-	void CB_GPU_Upload_Dynamic(Renderer::PipelineHandles& curHandles)
+	void CB_GPU_UPLOAD_PER_OBJECT(Renderer::PipelineHandles& curHandles)
 	{
 		// Upload matrices to the GPU
 		D3D11_MAPPED_SUBRESOURCE gpuBuffer;
-		D3D11_MAPPED_SUBRESOURCE gpuBuffer2;
 
 		// Disable GPU access to the constant buffer 
 		HRESULT hr = curHandles.context->Map(CB_PerObjectBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &gpuBuffer);
 		memcpy(gpuBuffer.pData, &CB_currentPerObject, sizeof(CB_PerObject));
 		curHandles.context->Unmap(CB_PerObjectBuffer, 0);
+	}
+
+	// UPDATE PER-OBJECT AND PER-FRAME CONSTANT BUFFER
+	void CB_GPU_UPLOAD_PER_FRAME(Renderer::PipelineHandles& curHandles)
+	{
+		// Upload matrices to the GPU
+		D3D11_MAPPED_SUBRESOURCE gpuBuffer;
 
 		// Disable GPU access to the constant buffer 
-		hr = curHandles.context->Map(CB_PerFrameBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &gpuBuffer2);
-		memcpy(gpuBuffer2.pData, &CB_currentPerFrame, sizeof(CB_PerFrame));
+		HRESULT hr = curHandles.context->Map(CB_PerFrameBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &gpuBuffer);
+		memcpy(gpuBuffer.pData, &CB_currentPerFrame, sizeof(CB_PerFrame));
 		curHandles.context->Unmap(CB_PerFrameBuffer, 0);
 	}
 
