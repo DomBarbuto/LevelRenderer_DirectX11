@@ -39,9 +39,9 @@ class Renderer
 	Camera viewCamera = Camera((float)m_windowWidth / m_windowHeight);
 
 	// Data sent to constant buffers
-	CB_PerScene CB_currentPerScene;
 	CB_PerObject CB_currentPerObject;
 	CB_PerFrame CB_currentPerFrame;
+	CB_PerScene CB_currentPerScene;
 
 	// Create a GameManager for level loading/switching
 	GameManager gameManager;
@@ -134,8 +134,8 @@ private:
 		XMStoreFloat4(&CB_currentPerObject.materialIndex, XMVectorReplicate(0.0f));
 
 		// Setup original perFrame (lighting) constant buffer structure
-		XMStoreFloat4(&CB_currentPerFrame.lightColor, XMLoadFloat4(&m_origSunlightColor));
-		XMStoreFloat3(&CB_currentPerFrame.lightDirection, XMVector3Normalize(XMLoadFloat3(&m_originalSunlightDirection)));
+		XMStoreFloat4(&CB_currentPerFrame.dirLight_Color, XMLoadFloat4(&m_origSunlightColor));
+		XMStoreFloat3(&CB_currentPerFrame.dirLight_Direction, XMVector3Normalize(XMLoadFloat3(&m_originalSunlightDirection)));
 
 		// Create the constant buffers
 		CreateConstantBuffer(creator, sizeof(CB_PerObject), &CB_PerObjectBuffer, D3D11_USAGE_DYNAMIC);
@@ -308,21 +308,62 @@ public:
 
 		//static float temp = 0.0001f;
 
-		CB_GPU_Upload_Default(curHandles);
+		//CB_GPU_Upload_Default(curHandles);
+
+		//// Partially working materials
+		//for (auto instance : gameManager.currentLevelData.levelInstances)
+		//{
+		//	CB_GPU_Upload_Dynamic(curHandles);
+		//	Level_Data::LEVEL_MODEL* model = &gameManager.currentLevelData.levelModels[instance.modelIndex];
+
+		//	curHandles.context->DrawIndexedInstanced(model->indexCount, instance.transformCount,
+		//		model->indexStart, model->vertexStart, instance.transformStart);
+
+		//	// Increment the material index after drawing every instance of this object
+		//	CB_currentPerObject.materialIndex.x++;
+
+		//}
+		//CB_currentPerObject.materialIndex.x = 0;
+
+
+
+
+
+		// TAKE-2
+		/*CB_GPU_Upload_Default(curHandles);
+		for (auto model : gameManager.currentLevelData.levelModels)
+		{
+			for (size_t meshIndex = 0; meshIndex < model.meshCount; meshIndex++)
+			{
+				H2B::MESH* mesh = &gameManager.currentLevelData.levelMeshes[meshIndex];
+
+				curHandles.context->DrawIndexedInstanced(mesh->drawInfo.indexCount, )
+			}
+		}*/
+
+
+		// TAKE 3
+		CB_GPU_Upload_Default(curHandles); // Upload per scene
 
 		for (auto instance : gameManager.currentLevelData.levelInstances)
 		{
-			CB_GPU_Upload_Dynamic(curHandles);
-			Level_Data::LEVEL_MODEL* model = &gameManager.currentLevelData.levelModels[instance.modelIndex];
+			Level_Data::LEVEL_MODEL* model
+				= &gameManager.currentLevelData.levelModels[instance.modelIndex];
 
-			curHandles.context->DrawIndexedInstanced(model->indexCount, instance.transformCount,
-				model->indexStart, model->vertexStart, instance.transformStart);
+			// Call draw indexed instanced for each mesh of each model
+			for (size_t meshIndex = 0; meshIndex < model->meshCount; meshIndex++)
+			{
+				H2B::MESH* mesh =
+					&gameManager.currentLevelData.levelMeshes[model->meshStart + meshIndex];
 
-			// Increment the material index after drawing every instance of this object
-			CB_currentPerObject.materialIndex.x++;
+				CB_currentPerObject.materialIndex.x = model->materialStart + mesh->materialIndex;
 
+				CB_GPU_Upload_Dynamic(curHandles);
+				curHandles.context->DrawIndexedInstanced(mesh->drawInfo.indexCount, instance.transformCount,
+					model->indexStart + mesh->drawInfo.indexOffset, model->vertexStart, instance.transformStart);
+			}
 		}
-		CB_currentPerObject.materialIndex.x = 0;
+
 		//temp += 0.005f;
 
 		ReleasePipelineHandles(curHandles);
@@ -494,6 +535,7 @@ private:
 
 	/////////////////////////////////////////////////////////////////////////////
 
+	// UPDATE PER-SCENE CONSTANT BUFFER
 	void CB_GPU_Upload_Default(Renderer::PipelineHandles& curHandles)
 	{
 		// Upload matrices to the GPU
@@ -505,6 +547,7 @@ private:
 		curHandles.context->Unmap(CB_PerSceneBuffer, 0);
 	}
 
+	// UPDATE PER-OBJECT AND PER-FRAME CONSTANT BUFFER
 	void CB_GPU_Upload_Dynamic(Renderer::PipelineHandles& curHandles)
 	{
 		// Upload matrices to the GPU

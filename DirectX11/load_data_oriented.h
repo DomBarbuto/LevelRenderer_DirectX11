@@ -14,11 +14,7 @@ public:
 		unsigned vertexCount, indexCount, materialCount, meshCount;
 		unsigned vertexStart, indexStart, materialStart, meshStart, batchStart;
 	};
-	struct POINT_LIGHT
-	{
-		std::string filename;
-		GW::MATH::GMATRIXF transform;
-	};
+	
 	struct MODEL_INSTANCES // each instance of a model in the level
 	{
 		unsigned modelIndex, transformStart, transformCount, flags; // flags optional
@@ -46,6 +42,7 @@ public:
 
 	//LIGHTS
 	std::vector<POINT_LIGHT> levelPointLights;
+	std::vector<SPOT_LIGHT> levelSpotLights;
 	
 	// Imports the default level txt format and collects all .h2b data
 	bool LoadLevel(	const char* gameLevelPath, 
@@ -168,9 +165,11 @@ private:
 			{
 				file.ReadLine(linebuffer, 1024, '\n');
 				log.LogCategorized("INFO", (std::string("Light Detected: ") + linebuffer).c_str());
+
+				// NOTE: Lights' names aren't being stored for cbuffer byte alignment reasons
 				// create the model file name from this (strip the .001)
-				POINT_LIGHT add = { linebuffer };
-				//add.filename = add.file.substr(0, add.modelFile.find_last_of("."));
+				//std::string name = linebuffer;
+				
 				// now read the transform data as we will need that regardless
 				GW::MATH::GMATRIXF transform;
 				for (int i = 0; i < 4; ++i) {
@@ -180,8 +179,77 @@ private:
 						&transform.data[0 + i * 4], &transform.data[1 + i * 4],
 						&transform.data[2 + i * 4], &transform.data[3 + i * 4]);
 				}
-				add.transform = transform;
-				levelPointLights.push_back(add);
+
+				// Now read the type of light, either point or spot
+				file.ReadLine(linebuffer, 1024, '\n');
+
+				// POINT LIGHT
+				if (std::strcmp(linebuffer, "TYPE: POINT") == 0)
+				{
+					POINT_LIGHT light;
+					light.transform = transform;
+
+					// COLOR
+					file.ReadLine(linebuffer, 1024, '\n');
+					std::sscanf(linebuffer + 10, "%f, g=%f, b=%f",
+						&light.color.x, &light.color.y,
+						&light.color.z);
+					light.color.w = 1;
+					// ENERGY
+					file.ReadLine(linebuffer, 1024, '\n');
+					std::sscanf(linebuffer, "%f",
+						&light.energy);
+					// DISTANCE/RANGE
+					file.ReadLine(linebuffer, 1024, '\n');
+					std::sscanf(linebuffer, "%f",
+						&light.distance);
+					// QUADRATIC ATTENUATION
+					file.ReadLine(linebuffer, 1024, '\n');
+					std::sscanf(linebuffer, "%f",
+						&light.q_attenuation);
+					// LINEAR ATTENUATION
+					file.ReadLine(linebuffer, 1024, '\n');
+					std::sscanf(linebuffer, "%f",
+						&light.l_attenuation);
+
+					levelPointLights.push_back(light);
+				}
+
+				// SPOT LIGHT
+				else if (std::strcmp(linebuffer, "TYPE: SPOT") == 0)
+				{
+					SPOT_LIGHT light;
+					light.transform = transform;
+
+					// COLOR
+					file.ReadLine(linebuffer, 1024, '\n');
+					std::sscanf(linebuffer + 10, "%f, g=%f, b=%f",
+						&light.color.x, &light.color.y,
+						&light.color.z);
+					light.color.w = 1;
+					// ENERGY
+					file.ReadLine(linebuffer, 1024, '\n');
+					std::sscanf(linebuffer, "%f",
+						&light.energy);
+					// DISTANCE/RANGE
+					file.ReadLine(linebuffer, 1024, '\n');
+					std::sscanf(linebuffer, "%f",
+						&light.distance);
+					// QUADRATIC ATTENUATION
+					file.ReadLine(linebuffer, 1024, '\n');
+					std::sscanf(linebuffer, "%f",
+						&light.q_attenuation);
+					// LINEAR ATTENUATION
+					file.ReadLine(linebuffer, 1024, '\n');
+					std::sscanf(linebuffer, "%f",
+						&light.l_attenuation);
+					// SPOT SIZE/ANGLE OF SPOTLIGHT
+					file.ReadLine(linebuffer, 1024, '\n');
+					std::sscanf(linebuffer, "%f",
+						&light.spotSize);
+
+					levelSpotLights.push_back(light);
+				}
 
 				std::string loc = "Location: X ";
 				loc += std::to_string(transform.row4.x) + " Y " +

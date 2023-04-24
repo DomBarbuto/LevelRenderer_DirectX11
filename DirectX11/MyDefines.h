@@ -66,29 +66,55 @@ return 0;
 */
 
 //////////////////////// Members ////////////////////////
-
 UINT m_windowWidth = 1080;
 UINT m_windowHeight = 720;
 float m_targetFPS = 60.0f;
 float m_frameTime = 1.0f / m_targetFPS;
 
-UINT m_gridDensity = 25;			// 25 is default
+/////////////////////// LIGHTING /////////////////////////
+// Directional Light
 XMFLOAT4 m_origSunlightColor = { 0.9f, 0.9f, 1.0f, 1.0f };
 XMFLOAT3 m_originalSunlightDirection = { -1, -1, 2 };
+// Point lights
+const UINT m_maxPointLights = 16;
+// Spot lights
+const UINT m_maxSpotLights = 16;
+
+//////////////////////// MISC ////////////////////////////
+UINT m_gridDensity = 25;			// 25 is default
 
 //////////////////////// Structs ////////////////////////
-
 struct MY_VERTEX
 {
 	XMFLOAT3 pos;
 	XMFLOAT3 uvw;
 	XMFLOAT3 nrm;
-	//XMFLOAT4 rgba;
 };
 
 struct PerInstanceData
 {
 	XMFLOAT4X4 wMatrix;
+};
+
+struct POINT_LIGHT
+{
+	GW::MATH::GMATRIXF transform;
+	XMFLOAT4 color;
+	float energy;
+	float distance;
+	float q_attenuation;
+	float l_attenuation;
+};
+
+struct SPOT_LIGHT
+{
+	GW::MATH::GMATRIXF transform;
+	XMFLOAT4 color;
+	float energy;
+	float distance;
+	float q_attenuation;
+	float l_attenuation;
+	float spotSize;
 };
 
 struct CB_PerScene
@@ -98,7 +124,6 @@ struct CB_PerScene
 
 struct CB_PerObject
 {
-	//XMFLOAT4X4 wMatrix;				// 64 bytes
 	XMFLOAT4X4 vMatrix;					// 64 bytes
 	XMFLOAT4X4 pMatrix;					// 64 bytes
 	XMFLOAT4 materialIndex;				// Replicated for byte-align
@@ -106,9 +131,12 @@ struct CB_PerObject
 
 struct CB_PerFrame
 {
-	XMFLOAT4 lightColor;		// 16 bytes
-	XMFLOAT3 lightDirection;	// 12 bytes
+	XMFLOAT4 dirLight_Color;		// 16 bytes
+	XMFLOAT3 dirLight_Direction;	// 12 bytes
 	float padding;
+	POINT_LIGHT pointLights[m_maxPointLights];
+	SPOT_LIGHT spotLights[m_maxSpotLights];
+
 };
 
 struct Clock
