@@ -1,7 +1,7 @@
 #include "Camera.h"
 Camera::Camera() 
 {
-	XMStoreFloat3(&m_vecPosition, { 0.0f, 0.0f, 0.0f });
+	XMStoreFloat3(&m_vecPosition, { 0.0f, 1.0f, 0.0f });
 	XMStoreFloat3(&m_axisRight, { 1.0f, 0.0f, 0.0f });
 	XMStoreFloat3(&m_axisUp, { 0.0f, 1.0f, 0.0f });
 	XMStoreFloat3(&m_axisForward, { 0.0f, 0.0f, 1.0f });
@@ -11,7 +11,7 @@ Camera::Camera()
 
 Camera::Camera(float _aspectRatio)
 {
-	XMStoreFloat3(&m_vecPosition, { 0.0f, 0.0f, -0.25f });
+	XMStoreFloat3(&m_vecPosition, { 0.0f, 2.0f, -0.25f });
 	XMStoreFloat3(&m_axisRight, { 1.0f, 0.0f, 0.0f });
 	XMStoreFloat3(&m_axisUp, { 0.0f, 1.0f, 0.0f });
 	XMStoreFloat3(&m_axisForward, { 0.0f, 0.0f, 1.0f });

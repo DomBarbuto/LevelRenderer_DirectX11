@@ -57,7 +57,7 @@ cbuffer CB_PerFrame : register(b1)
 
 cbuffer CB_PerScene : register(b2)
 {
-    OBJ_ATTRIBUTES atts[17];
+    OBJ_ATTRIBUTES atts[18];
     float numPointLights;
     float numSpotLights;
     float pad1;
@@ -73,13 +73,11 @@ struct VERTEX_In
     float3 PositionW_Cam : WORLDCAMPOS;
 };
 
-static float4 ambientTerm = float4(0.4f, 0.4f, 0.4f, 1.0f);
+static float4 ambientTerm = float4(0.2f, 0.2f, 0.2f, 1.0f);
 
 float4 main(VERTEX_In vIn) : SV_TARGET
 {
-    // atts[vIn.InstanceID]
     float4 surfaceColor = float4(atts[matIndex.x].diffuseReflectivity, 1.0f);
-    ////float4 surfaceColor = float4(0.5f, 0.5f, 0.5f, 1.0f); //TEST
     
     // Ambient and directional light
     float4 ambient = ambientTerm * surfaceColor;
@@ -87,18 +85,50 @@ float4 main(VERTEX_In vIn) : SV_TARGET
                                 * directionalLightColor * surfaceColor;
     float4 color = directionalLight + ambient; // Return color if you dont want specular
     
+    if (numPointLights > 0)
+    {
+        float4 pointLightColor = float4(0, 0, 0, 0);
+       
+        // For each point light in scene
+        for (int i = 0; i < numPointLights; i++)
+        {
+            float3 lightWorldPos = pointLights[i].transform._41_42_43;
+            
+            //// Forget about this light if this pixel is outside point light distance/range
+            //if (distance(lightWorldPos, vIn.PositionW) > pointLights[i].distance)
+            //    continue;
+            
+            // Point light formula
+            float3 lightDir = normalize(lightWorldPos - vIn.PositionW);
+            float lightRatio = saturate(dot(normalize(lightDir), normalize(vIn.NormalW)));
+            //float attenuation = pointLights[i].q_attenuation;
+            float attenuation = 1.0f - saturate(length(lightWorldPos - vIn.PositionW) / pointLights[i].distance);
+            attenuation *= attenuation;
+            pointLightColor = lightRatio * pointLights[i].color * (pointLights[i].energy * 0.05f) * surfaceColor * attenuation;
+        color += pointLightColor;
+        }
+        
+    }
+    
+    //if(numSpotLights > 0)
+    //{
+    //    // For each spot light in scene
+    //    for (int i = 0; i < numSpotLights; i++)
+    //    {
+            
+    //    }
+    //}
+    
     // Specular
     float3 viewDir = normalize(vIn.PositionW_Cam - vIn.PositionW);
     float3 halfVec = normalize((-directionalLightDir) + viewDir);
     //float3 reflectVec = reflect(normalize(directionalLightDir), vIn.iNrm);
     float dotProduct = max(0.0f, dot(vIn.NormalW, halfVec));
-    float intensity = pow(saturate(dotProduct), atts[matIndex.x].specularExponent);
-    //float intensity = pow(saturate(dotProduct), 20); // delete
+    float specIntensity = pow(saturate(dotProduct), atts[matIndex.x].specularExponent);
+    
     
     // Done
-    //return color;
-    return color += (float4(atts[matIndex.x].specularReflectivity, 1.0f) * intensity);
-    //return color += (float4(0.1f, 0.1f, 0.1f, 1.0f) * intensity);//DELETE
-    ////return float4(halfVec, 1.0f);
+    return color += (float4(atts[matIndex.x].specularReflectivity, 1.0f) * specIntensity);
+    //return color;                     // Return this if no specular
     //return float4(vIn.NormalW, 1.0f); // Normal direction test
 }

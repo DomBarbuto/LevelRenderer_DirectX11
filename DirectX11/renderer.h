@@ -22,7 +22,6 @@ class Renderer
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer>		vertexBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer>		indexBuffer;
-	//std::vector<PerInstanceData>				perInstanceData;
 	Microsoft::WRL::ComPtr<ID3D11Buffer>		instanceBuffer;
 	ID3D11Buffer*								CB_PerSceneBuffer;
 	ID3D11Buffer*								CB_PerObjectBuffer;

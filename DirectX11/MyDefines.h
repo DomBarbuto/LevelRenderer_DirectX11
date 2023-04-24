@@ -68,13 +68,13 @@ return 0;
 //////////////////////// Members ////////////////////////
 UINT m_windowWidth = 1080;
 UINT m_windowHeight = 720;
-float m_targetFPS = 60.0f;
-float m_frameTime = 1.0f / m_targetFPS;
+double m_targetFPS = 30.0;
+double m_frameTime = 1.0 / m_targetFPS;
 
 /////////////////////// LIGHTING /////////////////////////
 // Directional Light
 XMFLOAT4 m_origSunlightColor = { 0.9f, 0.9f, 1.0f, 1.0f };
-XMFLOAT3 m_originalSunlightDirection = { -1, -1, 2 };
+XMFLOAT3 m_originalSunlightDirection = { -1, -2, -2 };
 // Point lights
 const UINT m_maxPointLights = 16;
 // Spot lights
@@ -122,7 +122,7 @@ struct SPOT_LIGHT
 
 struct CB_PerScene
 {
-	H2B::ATTRIBUTES currOBJAttributes[17];	// ?
+	H2B::ATTRIBUTES currOBJAttributes[18];	// ?
 	float numPointLights;
 	float numSpotLights;
 	float pad1;
