@@ -36,7 +36,8 @@ struct SPOT_LIGHT
     float q_attenuation;
     float l_attenuation;
     float spotSize;
-    float padding1, padding2, padding3;
+    float spotBlend;
+    float padding1, padding2;
 };
 
 cbuffer CB_PerObject : register(b0)
@@ -57,7 +58,7 @@ cbuffer CB_PerFrame : register(b1)
 
 cbuffer CB_PerScene : register(b2)
 {
-    OBJ_ATTRIBUTES atts[18];
+    OBJ_ATTRIBUTES atts[20];
     float numPointLights;
     float numSpotLights;
     float pad1;
@@ -105,19 +106,38 @@ float4 main(VERTEX_In vIn) : SV_TARGET
             float attenuation = 1.0f - saturate(length(lightWorldPos - vIn.PositionW) / pointLights[i].distance);
             attenuation *= attenuation;
             pointLightColor = lightRatio * pointLights[i].color * (pointLights[i].energy * 0.05f) * surfaceColor * attenuation;
-        color += pointLightColor;
+
+            color += pointLightColor;
         }
         
     }
     
-    //if(numSpotLights > 0)
-    //{
-    //    // For each spot light in scene
-    //    for (int i = 0; i < numSpotLights; i++)
-    //    {
+    if (numSpotLights > 0)
+    {
+        float4 spotLightColor = float4(0, 0, 0, 0);
+        
+        // For each spot light in scene
+        for (int i = 0; i < numSpotLights; i++)
+        {
+            float3 lightWorldPos = spotLights[i].transform._41_42_43;
+            float3 coneDir = normalize(spotLights[i].transform._31_32_33); // Local forward Z direction
+            float coneOuterRatio = 0.8f;
+            float coneInnerRatio = 0.85f;
+ 
             
-    //    }
-    //}
+            // Spot light formula
+            float3 lightDir = normalize(lightWorldPos - vIn.PositionW);
+            float surfaceRatio = saturate(dot(-lightDir, coneDir));
+            //float spotFactor = (surfaceRatio > coneOuterRatio) ? 1 : 0;
+            float spotFactor = 1 - saturate((coneInnerRatio - surfaceRatio) / (coneInnerRatio - coneOuterRatio));
+            float lightRatio = saturate(dot(lightDir, normalize(vIn.NormalW)));
+            
+            float attenuation = 1.0f - saturate(length(lightWorldPos - vIn.PositionW) / pointLights[i].distance);
+            attenuation *= attenuation;
+            spotLightColor += spotFactor * lightRatio * spotLights[i].color * (spotLights[i].energy * 0.01f) * surfaceColor * attenuation;
+        }
+            color += spotLightColor;
+    }
     
     // Specular
     float3 viewDir = normalize(vIn.PositionW_Cam - vIn.PositionW);

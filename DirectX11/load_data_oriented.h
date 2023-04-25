@@ -243,10 +243,14 @@ private:
 					file.ReadLine(linebuffer, 1024, '\n');
 					std::sscanf(linebuffer, "%f",
 						&light.l_attenuation);
-					// SPOT SIZE/ANGLE OF SPOTLIGHT
+					// OUTER CONE ANGLE OF SPOTLIGHT - SPOTSIZE
 					file.ReadLine(linebuffer, 1024, '\n');
 					std::sscanf(linebuffer, "%f",
 						&light.spotSize);
+					// INNER CONE ANGLE OF SPOTLIGHT - SPOTBLEND
+					file.ReadLine(linebuffer, 1024, '\n');
+					std::sscanf(linebuffer, "%f",
+						&light.spotBlend);
 
 					levelSpotLights.push_back(light);
 				}

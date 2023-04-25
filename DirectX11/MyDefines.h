@@ -117,12 +117,13 @@ struct SPOT_LIGHT
 	float q_attenuation;
 	float l_attenuation;
 	float spotSize;
-	float padding1, padding2, padding3;
+	float spotBlend;
+	float padding1, padding2;
 };
 
 struct CB_PerScene
 {
-	H2B::ATTRIBUTES currOBJAttributes[18];	// ?
+	H2B::ATTRIBUTES currOBJAttributes[20];	// ?
 	float numPointLights;
 	float numSpotLights;
 	float pad1;

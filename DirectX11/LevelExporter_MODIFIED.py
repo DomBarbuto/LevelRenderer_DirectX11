@@ -60,17 +60,18 @@ def print_heir(ob, levels=10):
                 file.write(spaces + "TYPE: POINT" + "\n")
                 file.write(spaces + str(lamp.color) + "\n")                     #vec3  [0, inf]
                 file.write(spaces + str(lamp.energy) + "\n")                     #float [-inf, inf]
-                file.write(spaces + str(lamp.distance) + "\n")                   #float [0, inf]
+                file.write(spaces + str(lamp.cutoff_distance) + "\n")                   #float [0, inf]
                 file.write(spaces + str(lamp.quadratic_attenuation) + "\n")      #float [0,1]
                 file.write(spaces + str(lamp.linear_attenuation) + "\n")         #float [0, 1]
             if lamp.type == 'SPOT':
                 file.write(spaces + "TYPE: SPOT" + "\n")
                 file.write(spaces + str(lamp.color) + "\n")                     #vec3  [0, inf]
                 file.write(spaces + str(lamp.energy) + "\n")                     #float [-inf, inf]
-                file.write(spaces + str(lamp.distance) + "\n")                   #float [0, inf]
+                file.write(spaces + str(lamp.cutoff_distance) + "\n")                   #float [0, inf]
                 file.write(spaces + str(lamp.quadratic_attenuation) + "\n")      #float [0,1]
                 file.write(spaces + str(lamp.linear_attenuation) + "\n")         #float [0, 1]
-                file.write(spaces + str(lamp.spot_size) + "\n")                  #float (angle of spotlight beam)
+                file.write(spaces + str(lamp.spot_size) + "\n")                  #float (angle of outer cone)
+                file.write(spaces + str(lamp.spot_blend) + "\n")                  #float (angle of inner cone)
             
         for child in ob.children:
             recurse(child, ob,  depth + 1)
