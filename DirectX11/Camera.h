@@ -68,8 +68,8 @@ private:
 	float m_camMoveSpeed = 0.01f;
 	float m_mouseXSensitivity = 0.8f;
 	float m_mouseYSensitivity = 0.8f;
-	float m_rightStickXSensitivity = 8.0f;
-	float m_rightStickYSensitivity = 8.0f;
+	float m_rightStickXSensitivity = 16.0f;
+	float m_rightStickYSensitivity = 16.0f;
 
 	XMFLOAT3 m_vecPosition;
 	XMFLOAT3 m_axisRight;

@@ -339,6 +339,8 @@ struct GameManager
 	GLog gameLevelLog;
 	Level_Data currentLevelData;
 	int currentLevelIndex;
+	SPOT_LIGHT cameraFlashlight;
+	bool flashlightPowerOn = false;
 
 	GameManager()
 	{

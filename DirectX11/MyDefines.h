@@ -66,8 +66,8 @@ return 0;
 */
 
 //////////////////////// Members ////////////////////////
-UINT m_windowWidth = 1920;//1080;
-UINT m_windowHeight = 1080;// 720;
+UINT m_windowWidth = 1080;//1080;
+UINT m_windowHeight = 720;// 720;
 double m_targetFPS = 30.0;
 double m_frameTime = 1.0 / m_targetFPS;
 float m_camMoveSpeedOG = 0.01f;
@@ -145,6 +145,8 @@ struct CB_PerFrame
 	float time;
 	POINT_LIGHT pointLights[m_maxPointLights];
 	SPOT_LIGHT spotLights[m_maxSpotLights];
+	SPOT_LIGHT cameraFlashlight;
+	//bool flashlightPowerOn;
 
 };
 

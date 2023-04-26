@@ -147,6 +147,9 @@ private:
 		{
 			CB_currentPerFrame.spotLights[i] = gameManager.currentLevelData.levelSpotLights[i];
 		}
+		// Flashlight
+		CB_currentPerFrame.cameraFlashlight = gameManager.cameraFlashlight;
+		//CB_currentPerFrame.flashlightPowerOn = gameManager.flashlightPowerOn;
 
 		// Setup per scene buffer
 		//CB_currentPerScene.currOBJAttributes = gameManager.currentLevelData.levelAttributes;
@@ -329,6 +332,23 @@ public:
 		CB_currentPerObject.vMatrix = viewCamera.GetViewMatrix();
 		CB_currentPerObject.pMatrix = viewCamera.GetPerspectiveMatrix();
 
+		// Update flashlight spot light position and orientation
+		// Have to convert from gMatrix to XMFLOAT4X4 because view matrix is XMFLOAT4X4 and 
+		// spot light is GMATRIXF. 
+		XMFLOAT4X4 m = viewCamera.GetViewMatrix();
+		GW::MATH::GVECTORF row1 = { m._11, m._12, m._13, m._14 };
+		GW::MATH::GVECTORF row2 = { m._21, m._22, m._23, m._24 };
+		GW::MATH::GVECTORF row3 = { m._31, m._32, m._33, m._34 };
+		GW::MATH::GVECTORF row4 = { m._41, m._42, m._43, m._44 };
+		// Set the spot light transform the same as the view camera
+		gameManager.cameraFlashlight.transform.row1 = row1;
+		gameManager.cameraFlashlight.transform.row2 = row2;
+		gameManager.cameraFlashlight.transform.row3 = row3;
+		gameManager.cameraFlashlight.transform.row4 = row4;
+		// Update constant buffer flashlight
+		CB_currentPerFrame.cameraFlashlight = gameManager.cameraFlashlight;
+		//CB_currentPerFrame.flashlightPowerOn = gameManager.flashlightPowerOn;	// On or off
+
 		 static float temp = 0.0001f;
 		
 		// Upload per frame constant buffer (lighting changes)
@@ -347,9 +367,10 @@ public:
 				H2B::MESH* mesh =
 					&gameManager.currentLevelData.levelMeshes[model->meshStart + meshIndex];
 
+				// Pick which material to use
 				CB_currentPerObject.materialIndex.x = model->materialStart + mesh->materialIndex;
 
-				// Upload per object buffer
+				// Upload per-object constant buffer
 				CB_GPU_UPLOAD_PER_OBJECT(curHandles);
 				curHandles.context->DrawIndexedInstanced(mesh->drawInfo.indexCount, instance.transformCount,
 					model->indexStart + mesh->drawInfo.indexOffset, model->vertexStart, instance.transformStart);
@@ -384,6 +405,7 @@ public:
 		float lShoulderBtn = 0.0f;
 		float rShoulderBtn = 0.0f;
 		float rTriggerAxis = 0.0f;
+		float southButton = 0.0f;
 		bool isConnected = false;
 		controllerInput.IsConnected(0, isConnected);
 
@@ -397,8 +419,9 @@ public:
 			controllerInput.GetState(0, G_LEFT_SHOULDER_BTN, lShoulderBtn);
 			controllerInput.GetState(0, G_RIGHT_SHOULDER_BTN, rShoulderBtn);
 			controllerInput.GetState(0, G_RIGHT_TRIGGER_AXIS, rTriggerAxis);
+			controllerInput.GetState(0, G_SOUTH_BTN, southButton);
 		}
-
+		
 		// Movement {if: keyboard input, else if: controller input}
 		// Walk Forward
 		if (GetAsyncKeyState('W'))
@@ -441,9 +464,23 @@ public:
 			viewCamera.SetCamMoveSpeed(m_camMoveSpeedOG * 3);
 		else
 			viewCamera.SetCamMoveSpeed(m_camMoveSpeedOG);
-
 		if(rTriggerAxis > 0)
 			viewCamera.SetCamMoveSpeed(m_camMoveSpeedOG * 3);
+
+		// Camera flashlight toggle - flashlight is off on startup
+		// Turn On
+		if (!gameManager.flashlightPowerOn && 
+		   (GetAsyncKeyState('F') || southButton == 1))
+		{
+			gameManager.flashlightPowerOn = true;
+		}
+		// Turn off
+		else if (gameManager.flashlightPowerOn &&
+				(GetAsyncKeyState('F') || southButton == 1))
+		{
+			gameManager.flashlightPowerOn = false;
+		}
+
 
 		// Rotation
 		// MOUSE
