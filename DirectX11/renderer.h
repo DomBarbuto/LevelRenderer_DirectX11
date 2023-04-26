@@ -19,6 +19,9 @@ class Renderer
 	GW::GRAPHICS::GDirectX11Surface d3d;
 	GW::INPUT::GInput kbmInput;
 	GW::INPUT::GController controllerInput;
+	GW::AUDIO::GAudio gAudio;
+	GW::AUDIO::GMusic gMusic;
+
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer>		vertexBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer>		indexBuffer;
@@ -45,6 +48,8 @@ class Renderer
 	// Create a GameManager for level loading/switching
 	GameManager gameManager;
 
+	bool goingUp = true;
+
 public:
 	Renderer(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GDirectX11Surface _d3d)
 	{
@@ -58,6 +63,10 @@ public:
 
 		// Gamepad controller input handle
 		controllerInput.Create();
+
+		// Setup audio
+		//gAudio.Create();
+		//gMusic.Create("../Audio/405601__dblover__howling-wind-ambience.mp3");
 		
 		// Load the first level
 		gameManager.LoadLevel(0);
@@ -122,7 +131,6 @@ private:
 	{
 		PipelineHandles currHandles = GetCurrentPipelineHandles();
 
-
 		// Setup original PerObject constant buffer structure
 		CB_currentPerObject.vMatrix = viewCamera.GetViewMatrix();
 		CB_currentPerObject.pMatrix = viewCamera.GetPerspectiveMatrix();
@@ -166,16 +174,16 @@ private:
 
 	void InitializeRenderStates(ID3D11Device* creator)
 	{
-		D3D11_RASTERIZER_DESC normalDesc;
-		ZeroMemory(&normalDesc, sizeof(D3D11_RASTERIZER_DESC));
+		CD3D11_RASTERIZER_DESC normalDesc = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
+		//ZeroMemory(&normalDesc, sizeof(D3D11_RASTERIZER_DESC));
 		normalDesc.FillMode = D3D11_FILL_SOLID;
-		normalDesc.CullMode = D3D11_CULL_NONE;
+		//normalDesc.CullMode = D3D11_CULL_NONE;
 		HRESULT res = creator->CreateRasterizerState(&normalDesc, rasterStateNormal.GetAddressOf());
 
-		D3D11_RASTERIZER_DESC wireframeDesc;
-		ZeroMemory(&wireframeDesc, sizeof(D3D11_RASTERIZER_DESC));
+		CD3D11_RASTERIZER_DESC wireframeDesc = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
+		//ZeroMemory(&wireframeDesc, sizeof(D3D11_RASTERIZER_DESC));
 		wireframeDesc.FillMode = D3D11_FILL_WIREFRAME;
-		wireframeDesc.CullMode = D3D11_CULL_NONE;
+		//wireframeDesc.CullMode = D3D11_CULL_NONE;
 		res = creator->CreateRasterizerState(&wireframeDesc, rasterStateWireframe.GetAddressOf());
 	}
 
@@ -304,7 +312,7 @@ private:
 	}
 
 public:
-	void Render()
+	void Render(float deltaTime)
 	{
 		PipelineHandles curHandles = GetCurrentPipelineHandles();
 		SetUpPipeline(curHandles);
@@ -321,9 +329,10 @@ public:
 		CB_currentPerObject.vMatrix = viewCamera.GetViewMatrix();
 		CB_currentPerObject.pMatrix = viewCamera.GetPerspectiveMatrix();
 
-		// static float temp = 0.0001f;
+		 static float temp = 0.0001f;
 		
 		// Upload per frame constant buffer (lighting changes)
+		CB_currentPerFrame.time = temp;
 		CB_GPU_UPLOAD_PER_FRAME(curHandles);
 
 		// Draw via GPU instancing 
@@ -347,15 +356,28 @@ public:
 			}
 		}
 
-		//temp += 0.005f;
+
+		// DELETE. THIS IS MAKING THE SPOTLIGHTS ROTATE AT THIS MOMENT, BUT MUST DO BETTER
+		if (temp < 2 && goingUp)
+		{
+			goingUp = true;
+			temp += 0.01f;
+		}
+		else if( (temp >=2 && goingUp) || !goingUp)
+		{
+			goingUp = false;
+			temp -= 0.01f;
+			if (temp <= 0)
+				goingUp = true;
+		}
 
 		ReleasePipelineHandles(curHandles);
 	}
 
 	void UpdateCamera(Clock& timer)
 	{
-		timer.now = timer.clock.now();
-		timer.duration = std::chrono::duration_cast<std::chrono::milliseconds>(timer.now - timer.start);
+		timer.Tick();
+		timer.duration = std::chrono::duration_cast<std::chrono::microseconds>(timer.now - timer.start);
 
 		// Get Controller input
 		float lStickXAxis= 0.0f;

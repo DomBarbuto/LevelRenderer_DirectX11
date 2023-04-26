@@ -141,23 +141,39 @@ struct CB_PerFrame
 {
 	XMFLOAT4 dirLight_Color;		// 16 bytes
 	XMFLOAT3 dirLight_Direction;	// 12 bytes
-	float padding;
+	float time;
 	POINT_LIGHT pointLights[m_maxPointLights];
 	SPOT_LIGHT spotLights[m_maxSpotLights];
 
 };
 
-struct Clock
+static struct Clock
 {
 	std::chrono::steady_clock clock;
 	std::chrono::time_point<std::chrono::steady_clock> start;
 	std::chrono::time_point<std::chrono::steady_clock> now;
-	std::chrono::milliseconds duration;
+	std::chrono::time_point<std::chrono::steady_clock> lastUpdate;
+	std::chrono::microseconds duration;
 
 	Clock()
 	{
+		Start();
+	}
+	void Start()
+	{
 		// Start the clock
 		start = now = clock.now();
+		lastUpdate = now;
+	}
+
+	void Tick()
+	{
+		now = clock.now();
+	}
+
+	float Delta()
+	{
+		return std::chrono::duration_cast<std::chrono::microseconds>(now - lastUpdate).count() / 1000000.0f;
 	}
 };
 

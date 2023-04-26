@@ -10,7 +10,7 @@ int main()
 	GDirectX11Surface d3d11;
 
 	// Initialize the clock
-	Clock timer;
+	static Clock timer;
 
 	if (+win.Create(0, 0, m_windowWidth, m_windowHeight, GWindowStyle::WINDOWEDBORDERED))
 	{
@@ -27,7 +27,6 @@ int main()
 				clr[2] += 0.01f; // move towards a cyan as they resize
 		});
 		win.Register(msgs);
-
 
 		if (+d3d11.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
 		{
@@ -46,15 +45,15 @@ int main()
 					con->ClearRenderTargetView(view, clr);
 					con->ClearDepthStencilView(depth, D3D11_CLEAR_DEPTH, 1, 0);
 					renderer.UpdateCamera(timer);
-					if (timer.duration.count() > m_frameTime)
-					{
+					//if (timer.duration.count() > m_frameTime)
+					//{
 						//std::cout << "time since last draw = " << timer.duration.count() /1000.0f << std::endl;
-						std::cout << "FPS: " << timer.duration.count() * 60 << std::endl;
-
+						//std::cout << "FPS: " << timer.duration.count() << std::endl;
+						//std::cout << timer.Delta() << std::endl;
+						renderer.Render(timer.Delta());
 						// Start the clock
-						timer.start = timer.now = timer.clock.now();
-						renderer.Render();
-					}
+						timer.Start();
+					//}
 					swap->Present(1, 0);
 					// release incremented COM reference counts
 					swap->Release();

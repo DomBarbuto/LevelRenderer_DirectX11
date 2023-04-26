@@ -51,7 +51,7 @@ cbuffer CB_PerFrame : register(b1)
 {
     float4 directionalLightColor;
     float3 directionalLightDir;
-    float padding;
+    float time;
     POINT_LIGHT pointLights[16];
     SPOT_LIGHT spotLights[16];
 };
@@ -74,7 +74,8 @@ struct VERTEX_In
     float3 PositionW_Cam : WORLDCAMPOS;
 };
 
-static float4 ambientTerm = float4(0.2f, 0.2f, 0.2f, 1.0f);
+static float4 ambientTerm = float4(0.1f, 0.1f, 0.1f, 1.0f);
+static float4x4 identity = float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
 
 float4 main(VERTEX_In vIn) : SV_TARGET
 {
@@ -120,11 +121,16 @@ float4 main(VERTEX_In vIn) : SV_TARGET
         for (int i = 0; i < numSpotLights; i++)
         {
             float3 lightWorldPos = spotLights[i].transform._41_42_43;
-            float3 coneDir = normalize(spotLights[i].transform._31_32_33); // Local forward Z direction
+            
+            identity = mul(spotLights[i].transform, float4x4(cos(time), 0, sin(time), 0,
+                                                                            0, 1, 0, 0,
+	                                                                        -sin(time), 0, cos(time), 0,
+                                                                            0, 0, 0, 1));
+            
+            float3 coneDir = normalize(identity._31_32_33); // Local forward Z direction
             float coneOuterRatio = 0.8f;
             float coneInnerRatio = 0.85f;
  
-            
             // Spot light formula
             float3 lightDir = normalize(lightWorldPos - vIn.PositionW);
             float surfaceRatio = saturate(dot(-lightDir, coneDir));
