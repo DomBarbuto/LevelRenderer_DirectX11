@@ -149,31 +149,29 @@ struct CB_PerFrame
 
 static struct Clock
 {
-	std::chrono::steady_clock clock;
-	std::chrono::time_point<std::chrono::steady_clock> start;
-	std::chrono::time_point<std::chrono::steady_clock> now;
-	std::chrono::time_point<std::chrono::steady_clock> lastUpdate;
-	std::chrono::microseconds duration;
+	std::chrono::high_resolution_clock clock;
+	std::chrono::time_point<std::chrono::high_resolution_clock> start;
+	std::chrono::time_point<std::chrono::high_resolution_clock> stop;
 
-	Clock()
+	double GetMSElapsed()
 	{
-		Start();
+		auto elapsed = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - start);
+		return elapsed.count();
 	}
+
 	void Start()
 	{
-		// Start the clock
-		start = now = clock.now();
-		lastUpdate = now;
+		start = stop = clock.now();
 	}
 
-	void Tick()
+	void Restart()
 	{
-		now = clock.now();
+		start = std::chrono::high_resolution_clock::now();
 	}
 
-	float Delta()
+	void Stop()
 	{
-		return std::chrono::duration_cast<std::chrono::microseconds>(now - lastUpdate).count() / 1000000.0f;
+
 	}
 };
 

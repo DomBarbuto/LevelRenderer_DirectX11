@@ -8,14 +8,17 @@ int main()
 	GWindow win;
 	GEventResponder msgs;
 	GDirectX11Surface d3d11;
+	std::string assignmentString = "Dominic Barbuto | Level Renderer | ";
+	std::string fpsString = "FPS: 0";
 
 	// Initialize the clock
-	static Clock timer;
+	Clock gameTimer;
+	Clock fpsTimer;
 
 	if (+win.Create(0, 0, m_windowWidth, m_windowHeight, GWindowStyle::WINDOWEDBORDERED))
 	{
 		// Set Program name
-		win.SetWindowName("Dominic Barbuto - Programming Assignment 2");
+		win.SetWindowName((assignmentString + fpsString).c_str());
 
 		// Set back buffer color
 		float clr[] = { 13/255.0f, 18/255.0f, 43/255.0f, 1 }; // Dark, night sky color
@@ -24,13 +27,17 @@ int main()
 		msgs.Create([&](const GW::GEvent& e) {
 			GW::SYSTEM::GWindow::Events q;
 			if (+e.Read(q) && q == GWindow::Events::RESIZE)
+			{
 				clr[2] += 0.01f; // move towards a cyan as they resize
+			}
 		});
 		win.Register(msgs);
 
 		if (+d3d11.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
 		{
 			Renderer renderer(win, d3d11);
+			gameTimer.Start();
+			fpsTimer.Start();
 			while (+win.ProcessWindowEvents())
 			{
 				IDXGISwapChain* swap = nullptr;
@@ -42,18 +49,24 @@ int main()
 					+d3d11.GetDepthStencilView((void**)&depth) &&
 					+d3d11.GetSwapchain((void**)&swap))
 				{
+					double dt = gameTimer.GetMSElapsed();
+					gameTimer.Restart();
+
 					con->ClearRenderTargetView(view, clr);
 					con->ClearDepthStencilView(depth, D3D11_CLEAR_DEPTH, 1, 0);
-					renderer.UpdateCamera(timer);
-					//if (timer.duration.count() > m_frameTime)
-					//{
-						//std::cout << "time since last draw = " << timer.duration.count() /1000.0f << std::endl;
-						//std::cout << "FPS: " << timer.duration.count() << std::endl;
-						//std::cout << timer.Delta() << std::endl;
-						renderer.Render(timer.Delta());
-						// Start the clock
-						timer.Start();
-					//}
+					renderer.UpdateCamera(dt);
+					renderer.Render();
+
+					static int fpsCount = 0;
+					fpsCount++;
+					if (fpsTimer.GetMSElapsed() > 1000) // 1000ms == 1 sec
+					{
+						fpsString = "FPS: " + std::to_string(fpsCount);
+						win.SetWindowName((assignmentString + fpsString).c_str());
+						fpsCount = 0;
+						fpsTimer.Restart();
+					}
+					
 					swap->Present(1, 0);
 					// release incremented COM reference counts
 					swap->Release();

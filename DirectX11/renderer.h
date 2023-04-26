@@ -312,7 +312,7 @@ private:
 	}
 
 public:
-	void Render(float deltaTime)
+	void Render()
 	{
 		PipelineHandles curHandles = GetCurrentPipelineHandles();
 		SetUpPipeline(curHandles);
@@ -374,11 +374,8 @@ public:
 		ReleasePipelineHandles(curHandles);
 	}
 
-	void UpdateCamera(Clock& timer)
+	void UpdateCamera(double deltaTime)
 	{
-		timer.Tick();
-		timer.duration = std::chrono::duration_cast<std::chrono::microseconds>(timer.now - timer.start);
-
 		// Get Controller input
 		float lStickXAxis= 0.0f;
 		float lStickYAxis= 0.0f;
@@ -403,39 +400,39 @@ public:
 		// Movement {if: keyboard input, else if: controller input}
 		// Walk Forward
 		if (GetAsyncKeyState('W'))
-			viewCamera.Walk(viewCamera.GetCamMoveSpeed());
+			viewCamera.Walk(viewCamera.GetCamMoveSpeed() * deltaTime);
 		else if (lStickYAxis > 0)
-			viewCamera.Walk(viewCamera.GetCamMoveSpeed() * lStickYAxis);
+			viewCamera.Walk(viewCamera.GetCamMoveSpeed() * lStickYAxis * deltaTime);
 
 		// Walk Backward
 		if (GetAsyncKeyState('S'))
-			viewCamera.Walk(-1 * viewCamera.GetCamMoveSpeed());
+			viewCamera.Walk(-1 * viewCamera.GetCamMoveSpeed() * deltaTime);
 		else if (lStickYAxis < 0)
-			viewCamera.Walk(viewCamera.GetCamMoveSpeed() * lStickYAxis);
+			viewCamera.Walk(viewCamera.GetCamMoveSpeed() * lStickYAxis * deltaTime);
 
 		// Strafe left
 		if (GetAsyncKeyState('A'))
-			viewCamera.Strafe(-1 * viewCamera.GetCamMoveSpeed());
+			viewCamera.Strafe(-1 * viewCamera.GetCamMoveSpeed() * deltaTime);
 		else if (lStickXAxis < 0)
-			viewCamera.Strafe(viewCamera.GetCamMoveSpeed() * lStickXAxis);
+			viewCamera.Strafe(viewCamera.GetCamMoveSpeed() * lStickXAxis * deltaTime);
 
 		// Strafe right
 		if (GetAsyncKeyState('D'))
-			viewCamera.Strafe(1 * viewCamera.GetCamMoveSpeed());
+			viewCamera.Strafe(1 * viewCamera.GetCamMoveSpeed() * deltaTime);
 		else if (lStickXAxis > 0)
-			viewCamera.Strafe(viewCamera.GetCamMoveSpeed() * lStickXAxis);
+			viewCamera.Strafe(viewCamera.GetCamMoveSpeed() * lStickXAxis * deltaTime);
 
 		// Slide up
 		if (GetAsyncKeyState('E'))
-			viewCamera.Slide(1 * viewCamera.GetCamMoveSpeed());
+			viewCamera.Slide(1 * viewCamera.GetCamMoveSpeed() * deltaTime);
 		else if (rShoulderBtn == 1)
-			viewCamera.Slide(viewCamera.GetCamMoveSpeed() * rShoulderBtn);
+			viewCamera.Slide(viewCamera.GetCamMoveSpeed() * rShoulderBtn * deltaTime);
 
 		// Slide down
 		if (GetAsyncKeyState('Q'))
-			viewCamera.Slide(-1 * viewCamera.GetCamMoveSpeed());
+			viewCamera.Slide(-1 * viewCamera.GetCamMoveSpeed() * deltaTime);
 		else if (lShoulderBtn == 1)
-			viewCamera.Slide(-viewCamera.GetCamMoveSpeed() * lShoulderBtn);
+			viewCamera.Slide(-viewCamera.GetCamMoveSpeed() * lShoulderBtn * deltaTime);
 
 		// Rotation
 		// MOUSE
@@ -445,8 +442,8 @@ public:
 		// If there was mouse movement
 		if (mouseReturn != GReturn::REDUNDANT)
 		{
-			viewCamera.PitchX(XMConvertToRadians( 0.1f * dy));
-			viewCamera.YawY(XMConvertToRadians(0.1f * dx));
+			viewCamera.PitchX(XMConvertToRadians( 0.1f * dy * viewCamera.GetMouseYSensitivity()));
+			viewCamera.YawY(XMConvertToRadians(0.1f * dx * viewCamera.GetMouseXSensitivity()));
 		}
 		// CONTROLLER
 		else
