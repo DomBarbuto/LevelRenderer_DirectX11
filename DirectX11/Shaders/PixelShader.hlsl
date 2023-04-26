@@ -54,6 +54,8 @@ cbuffer CB_PerFrame : register(b1)
     float time;
     POINT_LIGHT pointLights[16];
     SPOT_LIGHT spotLights[16];
+    SPOT_LIGHT cameraFlashLight;
+    bool flashlightPowerOn;
 };
 
 cbuffer CB_PerScene : register(b2)
@@ -143,6 +145,29 @@ float4 main(VERTEX_In vIn) : SV_TARGET
             spotLightColor += spotFactor * lightRatio * spotLights[i].color * (spotLights[i].energy * 0.01f) * surfaceColor * attenuation;
         }
             color += spotLightColor;
+    }
+    
+    // If camera flashlight is on
+    if(flashlightPowerOn)
+    {
+        float4 spotLightColor = float4(0, 0, 0, 0);
+        
+        float3 coneDir = normalize(cameraFlashLight.transform._31_32_33); // Local forward Z direction
+        float coneOuterRatio = 0.8f;
+        float coneInnerRatio = 0.85f;
+ 
+        // Spot light formula
+        float3 lightDir = normalize(cameraFlashLight.transform._41_42_43 - vIn.PositionW);
+        float surfaceRatio = saturate(dot(-lightDir, coneDir));
+        //float spotFactor = (surfaceRatio > coneOuterRatio) ? 1 : 0;
+        float spotFactor = 1 - saturate((coneInnerRatio - surfaceRatio) / (coneInnerRatio - coneOuterRatio));
+        float lightRatio = saturate(dot(lightDir, normalize(vIn.NormalW)));
+            
+        float attenuation = 1.0f - saturate(length(cameraFlashLight.transform._41_42_43 - vIn.PositionW) / cameraFlashLight.distance);
+        attenuation *= attenuation;
+        spotLightColor += spotFactor * lightRatio * cameraFlashLight.color * (cameraFlashLight.energy * 0.01f) * surfaceColor * attenuation;
+        
+        color += spotLightColor;
     }
     
     // Specular

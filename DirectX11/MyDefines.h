@@ -146,7 +146,7 @@ struct CB_PerFrame
 	POINT_LIGHT pointLights[m_maxPointLights];
 	SPOT_LIGHT spotLights[m_maxSpotLights];
 	SPOT_LIGHT cameraFlashlight;
-	//bool flashlightPowerOn;
+	XMFLOAT4 flashlightPowerOn;
 
 };
 

@@ -1,6 +1,9 @@
 #pragma once
 #include <DirectXMath.h>
 #include <iostream>
+#define GATEWARE_ENABLE_CORE // All libraries need this
+#define GATEWARE_ENABLE_MATH
+#include "../gateware-main/Gateware.h"
 using namespace DirectX;
 
 class Camera
@@ -35,6 +38,7 @@ public:
 	XMVECTOR GetForwardXM() const;
 	XMFLOAT3 GetForward() const;
 
+	GW::MATH::GMATRIXF GetCameraWorldMatrix();
 	XMFLOAT4X4 GetViewMatrix();
 	XMFLOAT4X4 GetPerspectiveMatrix();
 

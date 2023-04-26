@@ -149,10 +149,9 @@ private:
 		}
 		// Flashlight
 		CB_currentPerFrame.cameraFlashlight = gameManager.cameraFlashlight;
-		//CB_currentPerFrame.flashlightPowerOn = gameManager.flashlightPowerOn;
+		CB_currentPerFrame.flashlightPowerOn.x = gameManager.flashlightPowerOn; // bool
 
 		// Setup per scene buffer
-		//CB_currentPerScene.currOBJAttributes = gameManager.currentLevelData.levelAttributes;
 		for (size_t i = 0; i < gameManager.currentLevelData.levelAttributes.size(); i++)
 		{
 			CB_currentPerScene.currOBJAttributes[i] = gameManager.currentLevelData.levelAttributes[i];
@@ -332,22 +331,12 @@ public:
 		CB_currentPerObject.vMatrix = viewCamera.GetViewMatrix();
 		CB_currentPerObject.pMatrix = viewCamera.GetPerspectiveMatrix();
 
+		std::cout << "Flashlight: " << CB_currentPerFrame.flashlightPowerOn.x << std::endl;
 		// Update flashlight spot light position and orientation
-		// Have to convert from gMatrix to XMFLOAT4X4 because view matrix is XMFLOAT4X4 and 
-		// spot light is GMATRIXF. 
-		XMFLOAT4X4 m = viewCamera.GetViewMatrix();
-		GW::MATH::GVECTORF row1 = { m._11, m._12, m._13, m._14 };
-		GW::MATH::GVECTORF row2 = { m._21, m._22, m._23, m._24 };
-		GW::MATH::GVECTORF row3 = { m._31, m._32, m._33, m._34 };
-		GW::MATH::GVECTORF row4 = { m._41, m._42, m._43, m._44 };
-		// Set the spot light transform the same as the view camera
-		gameManager.cameraFlashlight.transform.row1 = row1;
-		gameManager.cameraFlashlight.transform.row2 = row2;
-		gameManager.cameraFlashlight.transform.row3 = row3;
-		gameManager.cameraFlashlight.transform.row4 = row4;
+		gameManager.cameraFlashlight.transform = viewCamera.GetCameraWorldMatrix();
 		// Update constant buffer flashlight
 		CB_currentPerFrame.cameraFlashlight = gameManager.cameraFlashlight;
-		//CB_currentPerFrame.flashlightPowerOn = gameManager.flashlightPowerOn;	// On or off
+		CB_currentPerFrame.flashlightPowerOn.x = gameManager.flashlightPowerOn;	// On or off
 
 		 static float temp = 0.0001f;
 		

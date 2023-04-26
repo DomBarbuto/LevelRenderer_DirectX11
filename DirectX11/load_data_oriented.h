@@ -348,6 +348,14 @@ struct GameManager
 		gameLevelLog.EnableConsoleLogging(true);
 		gameLevelLog.Log("Started game.");
 		currentLevelIndex = 0;	
+
+		// Set up flashlight
+		// Transform isnt set here
+		cameraFlashlight.color = { 0.8f, 0.8f, 0.8f, 1.0f };
+		cameraFlashlight.distance = 100;
+		cameraFlashlight.energy = 250;
+		cameraFlashlight.spotSize = 0.6f;
+			cameraFlashlight.spotBlend = 0.6f;
 	}
 
 	void LoadLevel(unsigned int levelIndex)

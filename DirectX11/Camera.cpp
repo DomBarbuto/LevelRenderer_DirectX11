@@ -126,6 +126,19 @@ XMFLOAT3 Camera::GetForward() const
 	return m_axisForward;
 }
 
+// Intended for flashlight. 
+GW::MATH::GMATRIXF Camera::GetCameraWorldMatrix()
+{
+	using namespace GW::MATH;
+	GVECTORF r1 = { m_axisRight.x, m_axisRight.y, m_axisRight.z, 0 };
+	GVECTORF r2 = { m_axisUp.x, m_axisUp.y, m_axisUp.z, 0 };
+	GVECTORF r3 = { m_axisForward.x, m_axisForward.y, m_axisForward.z, 0 };
+	GVECTORF r4 = { m_vecPosition.x, m_vecPosition.y, m_vecPosition.z, 1 };
+	GMATRIXF m = { r1, r2, r3, r4 };
+	
+	return m;
+}
+
 XMFLOAT4X4 Camera::GetViewMatrix()
 {
 	return m_vMatrix;
