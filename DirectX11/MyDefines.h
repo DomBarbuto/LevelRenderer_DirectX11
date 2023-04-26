@@ -66,10 +66,11 @@ return 0;
 */
 
 //////////////////////// Members ////////////////////////
-UINT m_windowWidth = 1080;
-UINT m_windowHeight = 720;
+UINT m_windowWidth = 1920;//1080;
+UINT m_windowHeight = 1080;// 720;
 double m_targetFPS = 30.0;
 double m_frameTime = 1.0 / m_targetFPS;
+float m_camMoveSpeedOG = 0.01f;
 
 /////////////////////// LIGHTING /////////////////////////
 // Directional Light

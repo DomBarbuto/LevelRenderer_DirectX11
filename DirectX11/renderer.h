@@ -383,6 +383,7 @@ public:
 		float rStickYAxis= 0.0f;
 		float lShoulderBtn = 0.0f;
 		float rShoulderBtn = 0.0f;
+		float rTriggerAxis = 0.0f;
 		bool isConnected = false;
 		controllerInput.IsConnected(0, isConnected);
 
@@ -395,6 +396,7 @@ public:
 			controllerInput.GetState(0, G_RY_AXIS, rStickYAxis);
 			controllerInput.GetState(0, G_LEFT_SHOULDER_BTN, lShoulderBtn);
 			controllerInput.GetState(0, G_RIGHT_SHOULDER_BTN, rShoulderBtn);
+			controllerInput.GetState(0, G_RIGHT_TRIGGER_AXIS, rTriggerAxis);
 		}
 
 		// Movement {if: keyboard input, else if: controller input}
@@ -433,6 +435,15 @@ public:
 			viewCamera.Slide(-1 * viewCamera.GetCamMoveSpeed() * deltaTime);
 		else if (lShoulderBtn == 1)
 			viewCamera.Slide(-viewCamera.GetCamMoveSpeed() * lShoulderBtn * deltaTime);
+
+		// Movement Speed boost
+		if (GetAsyncKeyState(VK_LSHIFT))
+			viewCamera.SetCamMoveSpeed(m_camMoveSpeedOG * 3);
+		else
+			viewCamera.SetCamMoveSpeed(m_camMoveSpeedOG);
+
+		if(rTriggerAxis > 0)
+			viewCamera.SetCamMoveSpeed(m_camMoveSpeedOG * 3);
 
 		// Rotation
 		// MOUSE

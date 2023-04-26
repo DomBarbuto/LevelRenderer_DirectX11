@@ -11,6 +11,7 @@ public:
 	~Camera();
 
 	float GetCamMoveSpeed();
+	void SetCamMoveSpeed(float speed);
 	float GetMouseXSensitivity();
 	float GetMouseYSensitivity();
 	float GetRightStickXSensitivity();

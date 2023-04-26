@@ -31,6 +31,11 @@ float Camera::GetCamMoveSpeed()
 	return m_camMoveSpeed;
 }
 
+void Camera::SetCamMoveSpeed(float speed)
+{
+	m_camMoveSpeed = speed;
+}
+
 float Camera::GetMouseXSensitivity()
 {
 	return m_mouseXSensitivity;
