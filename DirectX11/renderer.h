@@ -19,9 +19,10 @@ class Renderer
 	GW::GRAPHICS::GDirectX11Surface d3d;
 	GW::INPUT::GInput kbmInput;
 	GW::INPUT::GController controllerInput;
+
 	GW::AUDIO::GAudio gAudio;
 	GW::AUDIO::GMusic gMusic;
-
+	bool isMusicPlaying = false;
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer>		vertexBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer>		indexBuffer;
@@ -47,6 +48,7 @@ class Renderer
 
 	// Create a GameManager for level loading/switching
 	GameManager gameManager;
+	Clock inputBlockTimer;
 
 	bool goingUp = true;
 
@@ -64,12 +66,15 @@ public:
 		// Gamepad controller input handle
 		controllerInput.Create();
 
-		// Setup audio
-		//gAudio.Create();
-		//gMusic.Create("../Audio/405601__dblover__howling-wind-ambience.mp3");
-		
 		// Load the first level
 		gameManager.LoadLevel(0);
+
+		// Setup audio
+		GReturn ret = gAudio.Create();
+		ret = gMusic.Create(gameManager.musicPath1, gAudio, 0.1f);
+		gMusic.isPlaying(isMusicPlaying);
+		if (!isMusicPlaying)
+			gMusic.Play(true);
 
 		InitializeGraphics();
 	}
@@ -331,9 +336,10 @@ public:
 		CB_currentPerObject.vMatrix = viewCamera.GetViewMatrix();
 		CB_currentPerObject.pMatrix = viewCamera.GetPerspectiveMatrix();
 
-		std::cout << "Flashlight: " << CB_currentPerFrame.flashlightPowerOn.x << std::endl;
 		// Update flashlight spot light position and orientation
 		gameManager.cameraFlashlight.transform = viewCamera.GetCameraWorldMatrix();
+		std::cout << "Flashlight: " << CB_currentPerFrame.flashlightPowerOn.x << std::endl;
+
 		// Update constant buffer flashlight
 		CB_currentPerFrame.cameraFlashlight = gameManager.cameraFlashlight;
 		CB_currentPerFrame.flashlightPowerOn.x = gameManager.flashlightPowerOn;	// On or off
@@ -456,18 +462,27 @@ public:
 		if(rTriggerAxis > 0)
 			viewCamera.SetCamMoveSpeed(m_camMoveSpeedOG * 3);
 
+		if (!gameManager.canUseFlash && inputBlockTimer.GetMSElapsed() > 250)
+		{
+			gameManager.canUseFlash = true;
+		}
+		
 		// Camera flashlight toggle - flashlight is off on startup
 		// Turn On
-		if (!gameManager.flashlightPowerOn && 
+		if (gameManager.canUseFlash && !gameManager.flashlightPowerOn && 
 		   (GetAsyncKeyState('F') || southButton == 1))
 		{
 			gameManager.flashlightPowerOn = true;
+			gameManager.canUseFlash = false;
+			inputBlockTimer.Restart();
 		}
 		// Turn off
-		else if (gameManager.flashlightPowerOn &&
+		else if (gameManager.canUseFlash && gameManager.flashlightPowerOn &&
 				(GetAsyncKeyState('F') || southButton == 1))
 		{
 			gameManager.flashlightPowerOn = false;
+			gameManager.canUseFlash = false;
+			inputBlockTimer.Restart();
 		}
 
 

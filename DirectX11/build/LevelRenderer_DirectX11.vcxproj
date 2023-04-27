@@ -336,6 +336,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <ItemGroup>
     <Text Include="..\GameLevel.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <Media Include="..\Audio\405601__dblover__howling-wind-ambience.wav" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -13,6 +13,7 @@ using namespace DirectX;
 #define GATEWARE_ENABLE_GRAPHICS // Enables all Graphics Libraries
 #define GATEWARE_ENABLE_MATH
 #define GATEWARE_ENABLE_INPUT
+#define GATEWARE_ENABLE_AUDIO
 // Ignore some GRAPHICS libraries we aren't going to use
 #define GATEWARE_DISABLE_GDIRECTX12SURFACE // we have another template for this
 #define GATEWARE_DISABLE_GRASTERSURFACE // we have another template for this

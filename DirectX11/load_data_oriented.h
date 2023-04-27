@@ -339,8 +339,12 @@ struct GameManager
 	GLog gameLevelLog;
 	Level_Data currentLevelData;
 	int currentLevelIndex;
+	// Camera flashlight
 	SPOT_LIGHT cameraFlashlight;
 	bool flashlightPowerOn = false;
+	bool canUseFlash = true;
+	// Music player
+	const char* musicPath1 = "../Audio/WIND_SNOW.wav";
 
 	GameManager()
 	{
