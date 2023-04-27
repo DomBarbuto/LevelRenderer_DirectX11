@@ -330,6 +330,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="..\FSLogo.h" />
     <ClInclude Include="..\h2bParser.h" />
     <ClInclude Include="..\load_data_oriented.h" />
+    <ClInclude Include="..\main.h" />
     <ClInclude Include="..\MyDefines.h" />
     <ClInclude Include="..\renderer.h" />
   </ItemGroup>

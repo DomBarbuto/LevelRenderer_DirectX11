@@ -52,6 +52,7 @@
     <ClInclude Include="..\load_data_oriented.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\main.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\GameLevel.txt" />

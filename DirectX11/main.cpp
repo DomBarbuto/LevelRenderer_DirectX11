@@ -1,5 +1,6 @@
 
 #include "renderer.h" // example rendering code (not Gateware code!)
+#include "main.h"
 
 
 // lets pop a window and use D3D11 to clear to a green screen
@@ -54,44 +55,13 @@ int main()
 					gameTimer.Restart();
 
 					// Check for F1 Key for selecting another level
-					if (!isPaused && GetAsyncKeyState(VK_F1))
-					{
-						isPaused = true;
-						GameManager* gm = renderer.GetGameManager();
+					CheckForLevelSwitch(isPaused, renderer);
 
-						OPENFILENAME ofn;
-						char text[200] = "";
-						wchar_t wtext[200];
-						mbstowcs(wtext, text, strlen(text) + 1);//Plus null
-						LPWSTR fileName = wtext;
-						ZeroMemory(&ofn, sizeof(ofn));
-
-						ofn.lStructSize = sizeof(OPENFILENAME);
-						UNIVERSAL_WINDOW_HANDLE handle;
-						win.GetWindowHandle(handle);
-						ofn.hwndOwner = (HWND)handle.window; // try null for hwndOwner
-						ofn.lpstrFilter = L"All Files (*.*)\0*.*\0";
-						ofn.lpstrFile = fileName;
-						ofn.nMaxFile = MAX_PATH;
-						ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
-
-						if (GetOpenFileName(&ofn))
-						{
-							char fileNameString[200];
-							wcstombs(fileNameString, ofn.lpstrFile, 100);
-							gm->gameLevelPath = fileNameString;
-						}
-					}
-
-					con->ClearRenderTargetView(view, clr);
-					con->ClearDepthStencilView(depth, D3D11_CLEAR_DEPTH, 1, 0);
-					renderer.UpdateCamera(dt);
-					renderer.Render();
+						con->ClearRenderTargetView(view, clr);
+						con->ClearDepthStencilView(depth, D3D11_CLEAR_DEPTH, 1, 0);
+						renderer.UpdateCamera(dt);
+						renderer.Render();
 					
-					con->ClearRenderTargetView(view, clr);
-					con->ClearDepthStencilView(depth, D3D11_CLEAR_DEPTH, 1, 0);
-					renderer.UpdateCamera(dt);
-					renderer.Render();
 
 					static int fpsCount = 0;
 					fpsCount++;
@@ -114,4 +84,17 @@ int main()
 		}
 	}
 	return 0; // that's all folks
+}
+
+void CheckForLevelSwitch(bool& isPaused, Renderer& renderer)
+{
+	if (!isPaused && GetAsyncKeyState(VK_F1))
+	{
+		isPaused = true;
+		GameManager* gm = renderer.GetGameManager();
+		gm->SwitchLevel();
+		gm->canUseFlash = true;
+		renderer.ReInitializeBuffers();
+		renderer.BeginMusic();
+	}
 }

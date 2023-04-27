@@ -93,6 +93,9 @@ public:
 		levelModels.clear();
 		levelTransforms.clear();
 		levelInstances.clear();
+		levelAttributes.clear();
+		levelPointLights.clear();
+		levelSpotLights.clear();
 
 	}
 	// *NO RENDERING/GPU/DRAW LOGIC IN HERE PLEASE* 
@@ -338,15 +341,14 @@ struct GameManager
 {
 	GLog gameLevelLog;
 	Level_Data currentLevelData;
-	int currentLevelIndex;
-	std::string gameLevelPath = "";
+	int currentLevelIndex = 0;
+	std::vector<const char*> levelFilePaths = { "../Levels/GameLevel.txt", "../Levels/GameLevel_BROKEN.txt" };
+	std::vector<const char*> musicFilepaths = { "../Audio/WIND_SNOW.wav", "../Audio/test.wav"};
 
 	// Camera flashlight
 	SPOT_LIGHT cameraFlashlight;
 	bool flashlightPowerOn = false;
 	bool canUseFlash = true;
-	// Music player
-	const char* musicPath1 = "../Audio/WIND_SNOW.wav";
 
 	GameManager()
 	{
@@ -366,27 +368,17 @@ struct GameManager
 
 	void LoadLevel()
 	{
-		//const char* gameLevelTextFile = "";
-
-		//switch (levelIndex)
-		//{
-		//case 0:
-		//	gameLevelTextFile = "../GameLevel.txt";
-		//	break;
-		//case 1:
-		//	gameLevelTextFile = "../GameLevel2.txt";
-		//	break;
-		//default:
-		//	std::cout << "Entered invalid level index" << std::endl;
-		//	break;
-		//}
-
-		currentLevelData.LoadLevel(gameLevelPath.c_str(), "../Models", gameLevelLog);
+		currentLevelData.LoadLevel(levelFilePaths[currentLevelIndex], "../Models", gameLevelLog);
 	}
 
 	void SwitchLevel()
 	{
-		currentLevelData.UnloadLevel();
+		currentLevelIndex++;
+		if (currentLevelIndex >= levelFilePaths.size())
+		{
+			currentLevelIndex = 0;
+		}
+		//currentLevelData.UnloadLevel();
 		LoadLevel();
 	}
 };

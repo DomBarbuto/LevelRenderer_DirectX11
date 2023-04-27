@@ -68,17 +68,21 @@ public:
 		controllerInput.Create();
 
 		// Load the first level
-		gameManager.gameLevelPath = "../Levels/GameLevel.txt";
 		gameManager.LoadLevel();
 
 		// Setup audio
 		GReturn ret = gAudio.Create();
-		ret = gMusic.Create(gameManager.musicPath1, gAudio, 0.1f);
+		BeginMusic();
+
+		InitializeGraphics();
+	}
+
+	void BeginMusic()
+	{
+		GReturn ret = gMusic.Create(gameManager.musicFilepaths[gameManager.currentLevelIndex], gAudio, 0.1f);
 		gMusic.isPlaying(isMusicPlaying);
 		if (!isMusicPlaying)
 			gMusic.Play(true);
-
-		InitializeGraphics();
 	}
 
 	GameManager* GetGameManager()
@@ -86,6 +90,16 @@ public:
 		return &gameManager;
 	}
 
+	void ReInitializeBuffers()
+	{
+		ID3D11Device* creator = nullptr;
+		d3d.GetDevice((void**)&creator);
+		//Initialize
+		InitializeVertexBuffer(creator);
+		InitializeIndexBuffer(creator);
+		InitializeInstanceBuffer(creator);
+		InitializeConstantBuffer(creator);
+	}
 
 private:
 	//Constructor helper functions 
