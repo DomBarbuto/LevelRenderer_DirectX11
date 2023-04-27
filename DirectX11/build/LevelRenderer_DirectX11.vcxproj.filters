@@ -56,7 +56,4 @@
   <ItemGroup>
     <Text Include="..\GameLevel.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Media Include="..\Audio\405601__dblover__howling-wind-ambience.wav" />
-  </ItemGroup>
 </Project>

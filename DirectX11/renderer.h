@@ -1,5 +1,6 @@
 #include "load_data_oriented.h"
 #include <d3dcompiler.h>
+#include <commdlg.h>	// For open file dialog
 #pragma comment(lib, "d3dcompiler.lib") //needed for runtime shader compilation. Consider compiling shaders before runtime 
 
 void PrintLabeledDebugString(const char* label, const char* toPrint)
@@ -48,7 +49,7 @@ class Renderer
 
 	// Create a GameManager for level loading/switching
 	GameManager gameManager;
-	Clock inputBlockTimer;
+	Clock flashlightBlockTimer;
 
 	bool goingUp = true;
 
@@ -67,7 +68,8 @@ public:
 		controllerInput.Create();
 
 		// Load the first level
-		gameManager.LoadLevel(0);
+		gameManager.gameLevelPath = "../Levels/GameLevel.txt";
+		gameManager.LoadLevel();
 
 		// Setup audio
 		GReturn ret = gAudio.Create();
@@ -78,6 +80,13 @@ public:
 
 		InitializeGraphics();
 	}
+
+	GameManager* GetGameManager()
+	{
+		return &gameManager;
+	}
+
+
 private:
 	//Constructor helper functions 
 	void InitializeGraphics()
@@ -462,7 +471,7 @@ public:
 		if(rTriggerAxis > 0)
 			viewCamera.SetCamMoveSpeed(m_camMoveSpeedOG * 3);
 
-		if (!gameManager.canUseFlash && inputBlockTimer.GetMSElapsed() > 250)
+		if (!gameManager.canUseFlash && flashlightBlockTimer.GetMSElapsed() > 250)
 		{
 			gameManager.canUseFlash = true;
 		}
@@ -474,7 +483,7 @@ public:
 		{
 			gameManager.flashlightPowerOn = true;
 			gameManager.canUseFlash = false;
-			inputBlockTimer.Restart();
+			flashlightBlockTimer.Restart();
 		}
 		// Turn off
 		else if (gameManager.canUseFlash && gameManager.flashlightPowerOn &&
@@ -482,7 +491,7 @@ public:
 		{
 			gameManager.flashlightPowerOn = false;
 			gameManager.canUseFlash = false;
-			inputBlockTimer.Restart();
+			flashlightBlockTimer.Restart();
 		}
 
 

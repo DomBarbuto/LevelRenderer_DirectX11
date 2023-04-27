@@ -14,6 +14,7 @@ int main()
 	// Initialize the clock
 	Clock gameTimer;
 	Clock fpsTimer;
+	bool isPaused = false;
 
 	if (+win.Create(0, 0, m_windowWidth, m_windowHeight, GWindowStyle::WINDOWEDBORDERED))
 	{
@@ -52,6 +53,41 @@ int main()
 					double dt = gameTimer.GetMSElapsed();
 					gameTimer.Restart();
 
+					// Check for F1 Key for selecting another level
+					if (!isPaused && GetAsyncKeyState(VK_F1))
+					{
+						isPaused = true;
+						GameManager* gm = renderer.GetGameManager();
+
+						OPENFILENAME ofn;
+						char text[200] = "";
+						wchar_t wtext[200];
+						mbstowcs(wtext, text, strlen(text) + 1);//Plus null
+						LPWSTR fileName = wtext;
+						ZeroMemory(&ofn, sizeof(ofn));
+
+						ofn.lStructSize = sizeof(OPENFILENAME);
+						UNIVERSAL_WINDOW_HANDLE handle;
+						win.GetWindowHandle(handle);
+						ofn.hwndOwner = (HWND)handle.window; // try null for hwndOwner
+						ofn.lpstrFilter = L"All Files (*.*)\0*.*\0";
+						ofn.lpstrFile = fileName;
+						ofn.nMaxFile = MAX_PATH;
+						ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
+
+						if (GetOpenFileName(&ofn))
+						{
+							char fileNameString[200];
+							wcstombs(fileNameString, ofn.lpstrFile, 100);
+							gm->gameLevelPath = fileNameString;
+						}
+					}
+
+					con->ClearRenderTargetView(view, clr);
+					con->ClearDepthStencilView(depth, D3D11_CLEAR_DEPTH, 1, 0);
+					renderer.UpdateCamera(dt);
+					renderer.Render();
+					
 					con->ClearRenderTargetView(view, clr);
 					con->ClearDepthStencilView(depth, D3D11_CLEAR_DEPTH, 1, 0);
 					renderer.UpdateCamera(dt);

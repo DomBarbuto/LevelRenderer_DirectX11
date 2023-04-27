@@ -339,6 +339,8 @@ struct GameManager
 	GLog gameLevelLog;
 	Level_Data currentLevelData;
 	int currentLevelIndex;
+	std::string gameLevelPath = "";
+
 	// Camera flashlight
 	SPOT_LIGHT cameraFlashlight;
 	bool flashlightPowerOn = false;
@@ -362,31 +364,30 @@ struct GameManager
 			cameraFlashlight.spotBlend = 0.6f;
 	}
 
-	void LoadLevel(unsigned int levelIndex)
+	void LoadLevel()
 	{
-		const char* gameLevelTextFile = "";
+		//const char* gameLevelTextFile = "";
 
-		switch (levelIndex)
-		{
-		case 0:
-			gameLevelTextFile = "../GameLevel.txt";
-			break;
-		case 1:
-			gameLevelTextFile = "../GameLevel2.txt";
-			break;
-		default:
-			std::cout << "Entered invalid level index" << std::endl;
-			break;
-		}
+		//switch (levelIndex)
+		//{
+		//case 0:
+		//	gameLevelTextFile = "../GameLevel.txt";
+		//	break;
+		//case 1:
+		//	gameLevelTextFile = "../GameLevel2.txt";
+		//	break;
+		//default:
+		//	std::cout << "Entered invalid level index" << std::endl;
+		//	break;
+		//}
 
-		currentLevelData.LoadLevel(gameLevelTextFile, "../Models", gameLevelLog);
-		currentLevelIndex = levelIndex;
+		currentLevelData.LoadLevel(gameLevelPath.c_str(), "../Models", gameLevelLog);
 	}
 
-	void SwitchLevel(unsigned int newLevelIndex)
+	void SwitchLevel()
 	{
 		currentLevelData.UnloadLevel();
-		LoadLevel(newLevelIndex);
+		LoadLevel();
 	}
 };
 
