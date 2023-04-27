@@ -342,6 +342,8 @@ struct GameManager
 	GLog gameLevelLog;
 	Level_Data currentLevelData;
 	int currentLevelIndex = 0;
+
+	std::string gameLevelPath = "../Levels/GameLevel.txt";
 	std::vector<const char*> levelFilePaths = { "../Levels/GameLevel.txt", "../Levels/GameLevel_BROKEN.txt" };
 	std::vector<const char*> musicFilepaths = { "../Audio/WIND_SNOW.wav", "../Audio/test.wav"};
 
@@ -363,21 +365,17 @@ struct GameManager
 		cameraFlashlight.distance = 100;
 		cameraFlashlight.energy = 250;
 		cameraFlashlight.spotSize = 0.6f;
-			cameraFlashlight.spotBlend = 0.6f;
+		cameraFlashlight.spotBlend = 0.6f;
 	}
 
 	void LoadLevel()
 	{
-		currentLevelData.LoadLevel(levelFilePaths[currentLevelIndex], "../Models", gameLevelLog);
+		//currentLevelData.LoadLevel(levelFilePaths[currentLevelIndex], "../Models", gameLevelLog);
+		currentLevelData.LoadLevel(gameLevelPath.c_str(), "../Models", gameLevelLog);
 	}
 
 	void SwitchLevel()
 	{
-		currentLevelIndex++;
-		if (currentLevelIndex >= levelFilePaths.size())
-		{
-			currentLevelIndex = 0;
-		}
 		//currentLevelData.UnloadLevel();
 		LoadLevel();
 	}

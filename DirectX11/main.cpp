@@ -1,8 +1,9 @@
 
 #include "renderer.h" // example rendering code (not Gateware code!)
 #include "main.h"
+#include <atlstr.h>
 
-
+//void CheckForLevelSwitch(bool& isPaused, Renderer& renderer, int& testCount, Clock& levelSwitchTimer);
 // lets pop a window and use D3D11 to clear to a green screen
 int main()
 {
@@ -15,6 +16,7 @@ int main()
 	// Initialize the clock
 	Clock gameTimer;
 	Clock fpsTimer;
+	Clock levelSwitchTimer;
 	bool isPaused = false;
 
 	if (+win.Create(0, 0, m_windowWidth, m_windowHeight, GWindowStyle::WINDOWEDBORDERED))
@@ -40,6 +42,7 @@ int main()
 			Renderer renderer(win, d3d11);
 			gameTimer.Start();
 			fpsTimer.Start();
+			levelSwitchTimer.Start();
 			while (+win.ProcessWindowEvents())
 			{
 				IDXGISwapChain* swap = nullptr;
@@ -54,13 +57,62 @@ int main()
 					double dt = gameTimer.GetMSElapsed();
 					gameTimer.Restart();
 
-					// Check for F1 Key for selecting another level
-					CheckForLevelSwitch(isPaused, renderer);
+					//// Check for F1 Key for selecting another level
+					//static int testCount = 0;
+					//testCount++;
+					//if (levelSwitchTimer.GetMSElapsed() > 1000) // 1000ms == 1 sec
+					//{
+					//	CheckForLevelSwitch(isPaused, renderer, testCount, levelSwitchTimer);
+					//}
 
-						con->ClearRenderTargetView(view, clr);
-						con->ClearDepthStencilView(depth, D3D11_CLEAR_DEPTH, 1, 0);
-						renderer.UpdateCamera(dt);
-						renderer.Render();
+					// Check for F1 Key for selecting another level
+					if (!isPaused && GetAsyncKeyState(VK_F1))
+					{
+						isPaused = true;
+						GameManager* gm = renderer.GetGameManager();
+
+						OPENFILENAME ofn;
+						char text[200] = "";
+						wchar_t wtext[200];
+						mbstowcs(wtext, text, strlen(text) + 1);//Plus null
+						LPWSTR fileName = wtext;
+						ZeroMemory(&ofn, sizeof(ofn));
+
+						ofn.lStructSize = sizeof(OPENFILENAME);
+						UNIVERSAL_WINDOW_HANDLE handle;
+						win.GetWindowHandle(handle);
+						ofn.hwndOwner = (HWND)handle.window; // try null for hwndOwner
+						ofn.lpstrFilter = L"Game Level Texts (.TXT)\0";
+						ofn.lpstrFile = fileName;
+						ofn.nMaxFile = MAX_PATH;
+						ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
+
+						if (GetOpenFileName(&ofn))
+						{
+							char fileNameString[200];
+							wcstombs(fileNameString, ofn.lpstrFile, 100);
+							
+							// Now must parse out the unwanted characters
+							std::string result(fileNameString);
+							size_t length = std::strlen(result.c_str());
+							
+							size_t lastIndexOf = result.rfind("\\");
+							std::string subString = result.substr(lastIndexOf +1, length - lastIndexOf);
+							std::string finalResult = "../Levels/" + subString;
+
+							gm->gameLevelPath = finalResult;
+							gm->SwitchLevel();
+							renderer.ReInitializeBuffers();
+							renderer.BeginMusic(gm->gameLevelPath);
+
+						}
+						isPaused = false;
+					}
+
+					con->ClearRenderTargetView(view, clr);
+					con->ClearDepthStencilView(depth, D3D11_CLEAR_DEPTH, 1, 0);
+					renderer.UpdateCamera(dt);
+					renderer.Render();
 					
 
 					static int fpsCount = 0;
@@ -86,15 +138,18 @@ int main()
 	return 0; // that's all folks
 }
 
-void CheckForLevelSwitch(bool& isPaused, Renderer& renderer)
-{
-	if (!isPaused && GetAsyncKeyState(VK_F1))
-	{
-		isPaused = true;
-		GameManager* gm = renderer.GetGameManager();
-		gm->SwitchLevel();
-		gm->canUseFlash = true;
-		renderer.ReInitializeBuffers();
-		renderer.BeginMusic();
-	}
-}
+//void CheckForLevelSwitch(bool& isPaused, Renderer& renderer, int& testCount, Clock& levelSwitchTimer)
+//{
+//	if (!isPaused && GetAsyncKeyState(VK_F1))
+//	{
+//		isPaused = true;
+//		GameManager* gm = renderer.GetGameManager();
+//		gm->SwitchLevel();
+//		gm->canUseFlash = true;
+//		renderer.ReInitializeBuffers();
+//		//renderer.BeginMusic();
+//		testCount = 0;
+//		levelSwitchTimer.Restart();
+//		isPaused = false;
+//	}
+//}

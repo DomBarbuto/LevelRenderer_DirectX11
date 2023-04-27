@@ -72,13 +72,18 @@ public:
 
 		// Setup audio
 		GReturn ret = gAudio.Create();
-		BeginMusic();
+		BeginMusic(gameManager.gameLevelPath);
 
 		InitializeGraphics();
 	}
 
-	void BeginMusic()
+	void BeginMusic(std::string gameLevelPath)
 	{
+		if (gameLevelPath == gameManager.levelFilePaths[0])
+			gameManager.currentLevelIndex = 0;
+		else if(gameLevelPath == gameManager.levelFilePaths[1])
+			gameManager.currentLevelIndex = 1;
+
 		GReturn ret = gMusic.Create(gameManager.musicFilepaths[gameManager.currentLevelIndex], gAudio, 0.1f);
 		gMusic.isPlaying(isMusicPlaying);
 		if (!isMusicPlaying)
