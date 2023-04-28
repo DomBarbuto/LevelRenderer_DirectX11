@@ -28,7 +28,7 @@ public:
 	std::vector<unsigned> levelIndices;
 	// All material data used by the level
 	std::vector<H2B::MATERIAL> levelMaterials;
-	std::vector<H2B::ATTRIBUTES> levelAttributes;	// MAYBE DELETE
+	std::vector<H2B::ATTRIBUTES> levelAttributes;
 	// This could be populated by the Level_Renderer during GPU transfer
 	std::vector<MATERIAL_TEXTURES> levelTextures; // same size as LevelMaterials
 	// All transform data used by each model
@@ -68,7 +68,7 @@ public:
 			return false;
 		}
 
-		// MAYBE DELETE
+		// Copy materials' attributes to another vector, levelAttributes
 		if (levelMaterials.size() != 0)
 		{
 			for (size_t i = 0; i < levelMaterials.size(); i++)
@@ -164,6 +164,8 @@ private:
 				else // yes
 					found->instances.push_back(transform);
 			}
+
+			// Grab the data for the lights in the scene
 			else if (std::strcmp(linebuffer, "LIGHT") == 0)
 			{
 				file.ReadLine(linebuffer, 1024, '\n');
@@ -345,7 +347,7 @@ struct GameManager
 
 	std::string gameLevelPath = "../Levels/GameLevel.txt";
 	std::vector<const char*> levelFilePaths = { "../Levels/GameLevel.txt", "../Levels/GameLevel_BROKEN.txt" };
-	std::vector<const char*> musicFilepaths = { "../Audio/WIND_SNOW.wav", "../Audio/test.wav"};
+	std::vector<const char*> musicFilepaths = { "../Audio/WIND_SNOW.wav", "../Audio/tomb_ambience.wav"};
 
 	// Camera flashlight
 	SPOT_LIGHT cameraFlashlight;
@@ -370,13 +372,11 @@ struct GameManager
 
 	void LoadLevel()
 	{
-		//currentLevelData.LoadLevel(levelFilePaths[currentLevelIndex], "../Models", gameLevelLog);
 		currentLevelData.LoadLevel(gameLevelPath.c_str(), "../Models", gameLevelLog);
 	}
 
 	void SwitchLevel()
 	{
-		//currentLevelData.UnloadLevel();
 		LoadLevel();
 	}
 };

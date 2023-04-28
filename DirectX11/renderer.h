@@ -353,11 +353,7 @@ public:
 		SetUpPipeline(curHandles);
 
 		// Update the viewport for the scene - Fixes weird bug 
-		unsigned int width, height;
-		win.GetClientWidth(width);
-		win.GetClientHeight(height);
-		D3D11_VIEWPORT viewport = { 0.0f, 0.0f, (float)width, (float)height, 0.0f, 1.0f };
-		curHandles.context->RSSetViewports(1, &viewport);
+		UpdateViewport(curHandles);
 
 		// Update view
 		viewCamera.UpdateViewMatrix();
@@ -659,6 +655,15 @@ private:
 		curHandles.context->Draw((m_gridDensity + 1) * 2, 0);
 		// Draw Grid Cols
 		curHandles.context->Draw((m_gridDensity + 1) * 2, ((m_gridDensity + 1) * 2));
+	}
+
+	void UpdateViewport(Renderer::PipelineHandles& curHandles)
+	{
+		unsigned int width, height;
+		win.GetClientWidth(width);
+		win.GetClientHeight(height);
+		D3D11_VIEWPORT viewport = { 0.0f, 0.0f, (float)width, (float)height, 0.0f, 1.0f };
+		curHandles.context->RSSetViewports(1, &viewport);
 	}
 
 public:

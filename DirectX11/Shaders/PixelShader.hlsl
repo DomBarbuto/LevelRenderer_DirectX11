@@ -136,7 +136,6 @@ float4 main(VERTEX_In vIn) : SV_TARGET
             // Spot light formula
             float3 lightDir = normalize(lightWorldPos - vIn.PositionW);
             float surfaceRatio = saturate(dot(-lightDir, coneDir));
-            //float spotFactor = (surfaceRatio > coneOuterRatio) ? 1 : 0;
             float spotFactor = 1 - saturate((coneInnerRatio - surfaceRatio) / (coneInnerRatio - coneOuterRatio));
             float lightRatio = saturate(dot(lightDir, normalize(vIn.NormalW)));
             
@@ -159,7 +158,6 @@ float4 main(VERTEX_In vIn) : SV_TARGET
         // Spot light formula
         float3 lightDir = normalize(cameraFlashLight.transform._41_42_43 - vIn.PositionW);
         float surfaceRatio = saturate(dot(-lightDir, coneDir));
-        //float spotFactor = (surfaceRatio > coneOuterRatio) ? 1 : 0;
         float spotFactor = 1 - saturate((coneInnerRatio - surfaceRatio) / (coneInnerRatio - coneOuterRatio));
         float lightRatio = saturate(dot(lightDir, normalize(vIn.NormalW)));
             
@@ -180,6 +178,4 @@ float4 main(VERTEX_In vIn) : SV_TARGET
     
     // Done
     return color += (float4(atts[matIndex.x].specularReflectivity, 1.0f) * specIntensity);
-    //return color;                     // Return this if no specular
-    //return float4(vIn.NormalW, 1.0f); // Normal direction test
 }
