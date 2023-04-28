@@ -346,7 +346,7 @@ struct GameManager
 	int currentLevelIndex = 0;
 
 	std::string gameLevelPath = "../Levels/GameLevel.txt";
-	std::vector<const char*> levelFilePaths = { "../Levels/GameLevel.txt", "../Levels/GameLevel_BROKEN.txt" };
+	std::vector<const char*> levelFilePaths = { "../Levels/GameLevel.txt", "../Levels/GameLevel2.txt" };
 	std::vector<const char*> musicFilepaths = { "../Audio/WIND_SNOW.wav", "../Audio/tomb_ambience.wav"};
 
 	// Camera flashlight

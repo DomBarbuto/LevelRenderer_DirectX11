@@ -125,7 +125,7 @@ struct SPOT_LIGHT
 
 struct CB_PerScene
 {
-	H2B::ATTRIBUTES currOBJAttributes[20];	// ?
+	H2B::ATTRIBUTES currOBJAttributes[40];	// ?
 	float numPointLights;
 	float numSpotLights;
 	float pad1;

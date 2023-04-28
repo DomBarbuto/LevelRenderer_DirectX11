@@ -60,7 +60,7 @@ cbuffer CB_PerFrame : register(b1)
 
 cbuffer CB_PerScene : register(b2)
 {
-    OBJ_ATTRIBUTES atts[20];
+    OBJ_ATTRIBUTES atts[40];
     float numPointLights;
     float numSpotLights;
     float pad1;
