@@ -1,7 +1,6 @@
 #pragma once
 #include <DirectXMath.h>
 #include <vector>		//resizable array
-#include "FSLogo.h"
 
 // This reads .h2b files which are optimized binary .obj+.mtl files
 #include "h2bParser.h"
@@ -28,43 +27,6 @@ using namespace GW;
 using namespace CORE;
 using namespace SYSTEM;
 using namespace GRAPHICS;
-
-/*
-There are 2 types: STORAGE TYPES, REGISTER/COMPUTATION TYPES.
-*/
-
-/*
-Use storage variables for non-temporary variables. EX: Class Members
-ALL math functions start with XM and ONLY WORK ON REGISTER/COMPUTATION TYPES.
-*/
-
-/*
-STORAGE->REGISTER(locally)->STORAGEs
-Convert storage types to register types[XMLOAD], do the computations, and then convert back to storage types[XMSTORE].
-THIS MEANS that register/computation types are typically only declared locally to where they will be used.
-*/
-
-/*
-CONVERSION:
-Use XMLOAD[Type] to load a storage type into a register type.
-Use XMSTORE[Type] to store a register type into a storage type.
-
-..Data member
-XMFLOAT3 normal(1,5,7)
-...
-
-somewhere in function...
-// Step 1 convert to high performance type
-XMVECTOR tempVec = XMLoadFloat3( &normal );
-// Step 2 perform all required calculations
-tempVec = XMVector3Normalize( tempVec );
-// Step 3 convert back to storage type
-XMStoreFloat3( &normal, tempVec );
-// "normal" is now actually normalized
-return 0;
-
-
-*/
 
 //////////////////////// Members ////////////////////////
 UINT m_windowWidth = 1080;//1080;
@@ -98,7 +60,6 @@ struct PerInstanceData
 	XMFLOAT4X4 wMatrix;
 };
 
-// Needs to be 16 byte aligned
 struct POINT_LIGHT
 {
 	GW::MATH::GMATRIXF transform;
@@ -109,7 +70,6 @@ struct POINT_LIGHT
 	float l_attenuation;
 };
 
-// Needs to be 16 byte aligned
 struct SPOT_LIGHT
 {
 	GW::MATH::GMATRIXF transform;
@@ -123,6 +83,7 @@ struct SPOT_LIGHT
 	float padding1, padding2;
 };
 
+// All constant buffer structs need to be 16 byte aligned
 struct CB_PerScene
 {
 	H2B::ATTRIBUTES currOBJAttributes[40];	// ?
@@ -173,36 +134,8 @@ static struct Clock
 		start = std::chrono::high_resolution_clock::now();
 	}
 
-	void Stop()
-	{
-
-	}
 };
 
-unsigned int Convert2D1D(unsigned int _x, unsigned int _y, unsigned int _width)
-{
-	return _x + (_y * _width);
-}
-
-void Convert1D2D(unsigned int _fromValue, unsigned int& _xResult, unsigned int& _yResult)
-{
-	// This is intended to create indexes for a 4x4 matrix
-	unsigned int x = 0;
-	unsigned int y = 0;
-	if (_fromValue <= 3)
-		y = 0;
-	else if (_fromValue <= 7)
-		y = 1;
-	else if (_fromValue <= 11)
-		y = 2;
-	else if (_fromValue <= 15)
-		y = 3;
-
-	x = _fromValue % 4;
-	_xResult = x;
-	_yResult = y;
-
-}
 
 //////////////////////// Geometry ////////////////////////
 

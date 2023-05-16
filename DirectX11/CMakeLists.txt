@@ -19,6 +19,11 @@ set(SOURCE_CODE
 	main.cpp
 	renderer.h
 	FileIntoString.h
+	Camera.h
+	h2bParser.h
+	load_data_oriented.h
+	MyDefines.h
+	Camera.cpp
 )
 
 if(WIN32)

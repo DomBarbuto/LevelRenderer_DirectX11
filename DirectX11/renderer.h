@@ -20,7 +20,6 @@ class Renderer
 	GW::GRAPHICS::GDirectX11Surface d3d;
 	GW::INPUT::GInput kbmInput;
 	GW::INPUT::GController controllerInput;
-
 	GW::AUDIO::GAudio gAudio;
 	GW::AUDIO::GMusic gMusic;
 	bool isMusicPlaying = false;
@@ -72,19 +71,14 @@ public:
 
 		// Setup audio
 		GReturn ret = gAudio.Create();
-		BeginMusic(gameManager.gameLevelPath);
+		BeginMusic();
 
 		InitializeGraphics();
 	}
 
-	void BeginMusic(std::string gameLevelPath)
+	void BeginMusic()
 	{
-		if (gameLevelPath == gameManager.levelFilePaths[0])
-			gameManager.currentLevelIndex = 0;
-		else if(gameLevelPath == gameManager.levelFilePaths[1])
-			gameManager.currentLevelIndex = 1;
-
-		GReturn ret = gMusic.Create(gameManager.musicFilepaths[gameManager.currentLevelIndex], gAudio, 0.1f);
+		GReturn ret = gMusic.Create(gameManager.musicFilepaths[gameManager.currentLevelIndex], gAudio, 0.5f);
 		gMusic.isPlaying(isMusicPlaying);
 		if (!isMusicPlaying)
 			gMusic.Play(true);
@@ -107,7 +101,6 @@ public:
 	}
 
 private:
-	//Constructor helper functions 
 	void InitializeGraphics()
 	{
 		ID3D11Device* creator = nullptr;
@@ -396,7 +389,6 @@ public:
 			}
 		}
 
-
 		// DELETE. THIS IS MAKING THE SPOTLIGHTS ROTATE AT THIS MOMENT, BUT MUST DO BETTER
 		if (temp < 2 && goingUp)
 		{
@@ -557,7 +549,7 @@ private:
 		SetIndexBuffer(handles);
 		SetConstantBuffers(handles);
 		SetShaders(handles);
-		SetRasterizerState(handles, rasterStateNormal.Get());
+		SetRasterizerState(handles, rasterStateWireframe.Get());
 
 		handles.context->IASetInputLayout(vertexFormat.Get());
 		handles.context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

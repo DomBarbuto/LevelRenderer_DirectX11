@@ -1,9 +1,6 @@
 
 #include "renderer.h" // example rendering code (not Gateware code!)
-#include "main.h"
-#include <atlstr.h>
 
-//void CheckForLevelSwitch(bool& isPaused, Renderer& renderer, int& testCount, Clock& levelSwitchTimer);
 // lets pop a window and use D3D11 to clear to a green screen
 int main()
 {
@@ -58,7 +55,13 @@ int main()
 					gameTimer.Restart();
 
 					// Check for F1 key press, open file dialog to select new level
-					CheckForLevelSwitch(renderer, win);
+					if (GetAsyncKeyState(VK_F1))
+					{
+						GameManager* gm = renderer.GetGameManager();
+						gm->SwitchLevel();
+						renderer.ReInitializeBuffers();
+						renderer.BeginMusic();
+					}
 
 					con->ClearRenderTargetView(view, clr);
 					con->ClearDepthStencilView(depth, D3D11_CLEAR_DEPTH, 1, 0);
@@ -86,55 +89,55 @@ int main()
 			}
 		}
 	}
-	return 0; // that's all folks
+	return 0; 
 }
 
-void CheckForLevelSwitch(Renderer& renderer, GW::SYSTEM::GWindow& win)
-{
-	// Check for F1 Key for selecting another level
-	if (GetAsyncKeyState(VK_F1))
-	{
-		// Set up OPENFILENAME structure which will hold all of the 
-		// info about our selected file
-		
-		GameManager* gm = renderer.GetGameManager();
-		OPENFILENAME ofn;
-		// Interchanging between LPWSTR and char[]
-		char text[200] = "";
-		wchar_t wtext[200];
-		mbstowcs(wtext, text, strlen(text) + 1);//Plus null
-		LPWSTR fileName = wtext;
-		ZeroMemory(&ofn, sizeof(ofn));
-
-		ofn.lStructSize = sizeof(OPENFILENAME);
-		UNIVERSAL_WINDOW_HANDLE handle;
-		win.GetWindowHandle(handle);
-		ofn.hwndOwner = (HWND)handle.window; // try null for hwndOwner
-		ofn.lpstrFilter = L"Text files only(*.txt)\0*.txt;\0";
-		ofn.lpstrFile = fileName;
-		ofn.nMaxFile = MAX_PATH;
-		ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
-		
-		// If the user selected a file
-		if (GetOpenFileName(&ofn))
-		{
-			char fileNameString[200];
-			wcstombs(fileNameString, ofn.lpstrFile, 100);
-
-			// Now must parse out the unwanted characters
-			std::string result(fileNameString);
-			size_t length = std::strlen(result.c_str());
-
-			size_t lastIndexOf = result.rfind("\\");
-			std::string subString = result.substr(lastIndexOf + 1, length - lastIndexOf);
-			std::string finalResult = "../Levels/" + subString;
-
-			gm->gameLevelPath = finalResult;
-			gm->SwitchLevel();
-			renderer.ReInitializeBuffers();
-			renderer.BeginMusic(gm->gameLevelPath);
-
-		}
-	}
-}
+//void CheckForLevelSwitch(Renderer& renderer, GW::SYSTEM::GWindow& win)
+//{
+//	// Check for F1 Key for selecting another level
+//	if (GetAsyncKeyState(VK_F1))
+//	{
+//		// Set up OPENFILENAME structure which will hold all of the 
+//		// info about our selected file
+//		
+//		GameManager* gm = renderer.GetGameManager();
+//		OPENFILENAME ofn;
+//		// Interchanging between LPWSTR and char[]
+//		char text[200] = "";
+//		wchar_t wtext[200];
+//		mbstowcs(wtext, text, strlen(text) + 1);//Plus null
+//		LPWSTR fileName = wtext;
+//		ZeroMemory(&ofn, sizeof(ofn));
+//
+//		ofn.lStructSize = sizeof(OPENFILENAME);
+//		UNIVERSAL_WINDOW_HANDLE handle;
+//		win.GetWindowHandle(handle);
+//		ofn.hwndOwner = (HWND)handle.window; // try null for hwndOwner
+//		ofn.lpstrFilter = L"Text files only(*.txt)\0*.txt;\0";
+//		ofn.lpstrFile = fileName;
+//		ofn.nMaxFile = MAX_PATH;
+//		ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
+//		
+//		// If the user selected a file
+//		if (GetOpenFileName(&ofn))
+//		{
+//			char fileNameString[200];
+//			wcstombs(fileNameString, ofn.lpstrFile, 200);
+//
+//			// Now must parse out the unwanted characters
+//			std::string result(fileNameString);
+//			size_t length = std::strlen(result.c_str());
+//
+//			size_t lastIndexOf = result.rfind("\\");
+//			std::string subString = result.substr(lastIndexOf + 1, length - lastIndexOf);
+//			std::string finalResult = "../Levels/" + subString;
+//
+//			gm->gameLevelPath = finalResult;
+//			gm->SwitchLevel();
+//			renderer.ReInitializeBuffers();
+//			renderer.BeginMusic(gm->gameLevelPath);
+//
+//		}
+//	}
+//}
 

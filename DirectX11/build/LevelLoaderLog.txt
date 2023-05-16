@@ -8,3 +8,8 @@
 [Sun Apr 23 22:00:52 2023] ThreadID[12340]	[MESSAGE]	Begin Reading Game Level Text File.
 [Sun Apr 23 22:00:52 2023] ThreadID[12340]	[ERROR]	Game level not found: ../GameLevel.txt
 [Sun Apr 23 22:00:52 2023] ThreadID[12340]	[ERROR]	Fatal error reading game level, aborting level load.
+[Thu Apr 27 23:41:03 2023] ThreadID[32680]	Started game.
+[Thu Apr 27 23:41:03 2023] ThreadID[32680]	[EVENT]	LOADING GAME LEVEL [DATA ORIENTED]
+[Thu Apr 27 23:41:03 2023] ThreadID[32680]	[MESSAGE]	Begin Reading Game Level Text File.
+[Thu Apr 27 23:41:03 2023] ThreadID[32680]	[ERROR]	Game level not found: ../Levels/GameLevel.txt
+[Thu Apr 27 23:41:03 2023] ThreadID[32680]	[ERROR]	Fatal error reading game level, aborting level load.

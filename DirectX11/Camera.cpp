@@ -235,7 +235,7 @@ void Camera::UpdateViewMatrix()
 				  x, y, z, 1.0f);
 
 	// Store new view matrix
-	temp.r[2].m128_f32[3] = 0.0f;
+	temp.r[2].m128_f32[3] = 0.0f;	//TEMPORARY BAND-AID FOR RELEASE EXECUTABLE
 	XMStoreFloat4x4(&m_vMatrix, temp);
 }
 

@@ -372,11 +372,15 @@ struct GameManager
 
 	void LoadLevel()
 	{
-		currentLevelData.LoadLevel(gameLevelPath.c_str(), "../Models", gameLevelLog);
+		currentLevelData.LoadLevel(levelFilePaths[currentLevelIndex], "../Models", gameLevelLog);
 	}
 
 	void SwitchLevel()
 	{
+		currentLevelIndex++;
+		if (currentLevelIndex >= levelFilePaths.size())
+			currentLevelIndex = 0;
+
 		LoadLevel();
 	}
 };
